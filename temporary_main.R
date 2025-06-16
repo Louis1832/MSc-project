@@ -4,11 +4,17 @@ install.packages("tidyr")
 install.packages("ggplot2")
 install.packages("gtsummary")
 install.packages("lubridate")
+install.packages("mice")
+install.packages("lattice")
+install.packages("corrplot")
+library(corrplot)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(gtsummary)
 library(lubridate)
+library(mice)
+library(lattice)
 
 #Read in the lung cancer MIMIC-IV ICU dataset
 icustays <- read.csv("icustays_lungcancer.csv") %>%
@@ -17,8 +23,15 @@ icustays <- read.csv("icustays_lungcancer.csv") %>%
   mutate(time_since_discharge = 
            as.numeric(difftime(intime, lag(outtime), units = "hours")),
          episode = 
-           cumsum(if_else(is.na(time_since_discharge)| time_since_discharge > 24, 1, 0))) %>%
-  ungroup()
+           cumsum(if_else(is.na(time_since_discharge)| time_since_discharge > 24, 1, 0)),
+         #time_since_discharge = if_else(is.na(time_since_discharge, 0,
+                                              #time_since_discharge))
+         ) %>%
+  ungroup() #%>%
+  #group_by(hadm_id, icd_code, episode, stay_id) %>%
+  #mutate(discharge_time = if_else(time_since_discharge < 24, time_since_discharge, 0),
+         #discharge_time_total = sum(discharge_time)) %>%
+#ungroup()
  
 icustays2 <- icustays %>%
   select(hadm_id, subject_id, icd_code) %>%
@@ -61,7 +74,7 @@ temperature <- read.csv("temperature_icu_data.csv") %>%
   mutate(timediff = as.numeric(ymd_hms(intime) - charttime, 'hours')) %>%
   select(c(hadm_id, stay_id, temperature, timediff)) %>%
   filter(temperature >= 25 & temperature < 47) %>%
-  filter(timediff <= 24)
+  filter(timediff <= time_to_icu)
 
 platelets <- read.csv("platelets_icu_data.csv") %>%
   full_join(read.csv("platelets_icu.csv"), by = c("hadm_id", "stay_id")) %>%
@@ -74,6 +87,7 @@ platelets <- read.csv("platelets_icu_data.csv") %>%
   mutate(platelets = if_else(charttime.x < charttime.y, platelets.y, platelets.x)) %>%
   mutate(timediff = as.numeric(ymd_hms(intime) - charttime, 'hours')) %>%
   select(c(hadm_id, stay_id, platelets, timediff)) %>%
+  filter(platelets < 1100) %>%
   filter(timediff <= time_to_icu)
 
 adm_type <- read.csv("admission_type.csv")
@@ -141,6 +155,7 @@ haemoglobin <- read.csv("haemoglobin_icu_data.csv") %>%
   mutate(haemoglobin = if_else(charttime.x < charttime.y, haemoglobin.y, haemoglobin.x)) %>%
   mutate(timediff = as.numeric(ymd_hms(intime) - charttime, 'hours')) %>%
   select(c(hadm_id, stay_id, haemoglobin, timediff)) %>%
+  filter(haemoglobin < 19) %>%
   filter(timediff <= time_to_icu)
 
 troponin <- read.csv("troponin_icu_data.csv") %>%
@@ -167,6 +182,7 @@ haematocrit <- read.csv("haematocrit_icu_data.csv") %>%
   mutate(haematocrit = if_else(charttime.x < charttime.y, haematocrit.y, haematocrit.x)) %>%
   mutate(timediff = as.numeric(ymd_hms(intime) - charttime, 'hours')) %>%
   select(c(hadm_id, stay_id, haematocrit, timediff)) %>%
+  filter(haematocrit < 60) %>%
   filter(timediff <= time_to_icu)
 
 INR <- read.csv("inr_icu_data.csv") %>%
@@ -247,18 +263,43 @@ main <- icu_episodes %>%
 
 #Create a dataset for the unique records
 main_unique <- main %>%
-  select(-c(episode,icustay_id,total_los,icd_code)) %>%
+  select(-c(episode,stay_id,total_los,icd_code)) %>%
   unique()
 
 #Histogram for the proportion of missingness
 main %>%
   select(c("temperature", "platelets", "glucose", "chloride", "potassium", "ptt",
            "haemoglobin", "troponin", "haematocrit", "inr", "sodium")) %>%
+  rename(Temperature = temperature,
+         Platelets = platelets,
+         Glucose = glucose,
+         Chloride = chloride,
+         Potassium = potassium,
+         PTT = ptt,
+         Haemoglobin = haemoglobin,
+         Troponin = troponin,
+         Haematocrit = haematocrit,
+         INR = inr,
+         Sodium = sodium) %>%
   summarise_all(~mean(is.na(.))*100) %>%
   pivot_longer(everything(), names_to = "column", values_to = "missing") %>%
-  ggplot(aes(x = column, y = missing)) +
-  geom_col(fill = "blue") +
-  theme_minimal()
+  ggplot(aes(x = reorder(column, missing), y = missing, fill = column)) +
+  ylab("Missing (%)") +
+  xlab("Variable") +
+  geom_col(width = 0.5) +
+  scale_fill_manual(values = c("Temperature"= "firebrick2",
+                               "Troponin" = "firebrick2",
+                               "INR" = "firebrick2" ,
+                               "PTT" = "firebrick2",
+                               "Chloride" = "darkolivegreen3",
+                               "Glucose" = "darkolivegreen3",
+                               "Haematocrit" = "darkolivegreen3",
+                               "Haemoglobin" = "darkolivegreen3",
+                               "Platelets" = "darkolivegreen3",
+                               "Potassium" = "darkolivegreen3",
+                               "Sodium" = "darkolivegreen3")) +
+  theme(axis.text.x = element_text(angle = 90,hjust = 1,vjust = 0.5)) +
+  guides(fill = "none")
 
 #Summary table for the variables
 main_summary <- main %>%
@@ -325,9 +366,11 @@ main_summary %>%
            "calcium_gluconate", "admission_type", "hospital_expire_flag",
            "total_los")) %>%
   gtsummary::tbl_summary(label = labels,
-                         missing_text = "Missing",
+                         #missing_text = "Missing",
+                         type = all_continuous() ~ "continuous2",
                          statistic = list(all_categorical() ~ "{n} ({p}%)",
-                                          all_continuous() ~ "{mean} ({sd})"))
+                                          all_continuous() ~ c("{mean} ({sd})",
+                                                               "{N_miss}, ({p_miss})")))
 
 ggplot(temperature, aes(x = timediff)) +
   geom_histogram(binwidth = 1) +
@@ -377,7 +420,77 @@ ggplot(main_summary, aes(x = age_cat)) +
   geom_bar() +
   theme_minimal()
 
+main_impute <- main_summary %>%
+  select("age",
+         #"sex","admission_type", "ethnicity",
+         "insurance", "previous_stay",
+         "platelets", "glucose", "chloride", "potassium", "haemoglobin",
+         "haematocrit", "sodium", "ondansetron", "calcium_gluconate", 
+         "hospital_expire_flag", "total_los") %>%
+  mutate(previous_stay = factor(previous_stay),
+         ondansetron = factor(ondansetron),
+         calcium_gluconate = factor(calcium_gluconate),
+         hospital_expire_flag = factor(hospital_expire_flag))
 
-
-
+main_impute %>% 
+  select("potassium", "haematocrit", "sodium", "glucose", "haemoglobin", "chloride",
+         "platelets") %>%
   
+  md.pattern(rotate.names = TRUE)
+
+imp <- mice(main_impute, method = "mean", m = 5, maxit = 5)
+
+meth <- imp$method
+
+
+#meth["ethnicity"] <- ""
+meth["insurance"] <- "polyreg"
+#meth["admission_type"] <- ""
+#meth["sex"] <- ""
+meth["age"] <- "norm"
+meth["ondansetron"] <- "logreg"
+meth["calcium_gluconate"] <- "logreg"
+meth["hospital_expire_flag"] <- "logreg"
+meth["total_los"] <- "norm"
+meth["previous_stay"] <- "polyreg"
+meth["glucose"] <- "pmm"
+meth["sodium"] <- "pmm"
+meth["chloride"] <- "pmm"
+meth["platelets"] <- "pmm"
+meth["potassium"] <- "pmm"
+meth["haemoglobin"] <- "pmm"
+meth["haematocrit"] <- "pmm"
+
+imp <- mice(main_impute, method = meth, m = 55, maxit = 20)
+
+plot(imp)
+
+completed_data <- complete(imp, 2)
+
+hist(completed_data$sodium)
+
+main_impute.cor = main_impute %>% 
+  select(c("glucose","sodium","chloride", "platelets", "potassium", "haemoglobin",
+           "haematocrit")) %>%
+  cor(use = "complete.obs")
+
+corrplot(main_impute.cor)
+
+predictor_matrix <- imp$predictorMatrix
+
+#plot imp
+
+#change predictor matrix for haematocrit and haemoglobin to 0
+
+#make imp2 with new predictor matrix
+
+#plot 2
+
+#create cross validation folds
+
+#add the cores
+
+#make for loop including first define train and test data, impute the train data,
+#install recipes package ready for imputing test with different methods. The next
+#steps after that would be to train the model and evaluate but I haven't got to that
+#yet
