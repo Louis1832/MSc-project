@@ -7,6 +7,14 @@ install.packages("lubridate")
 install.packages("mice")
 install.packages("lattice")
 install.packages("corrplot")
+install.packages("caret")
+install.packages("parallel")
+install.packages("doParallel")
+install.packages("recipes")
+library(recipes)
+library(doParallel)
+library(parallel)
+library(caret)
 library(corrplot)
 library(dplyr)
 library(tidyr)
@@ -479,18 +487,53 @@ corrplot(main_impute.cor)
 predictor_matrix <- imp$predictorMatrix
 
 #plot imp
+plot(imp)
 
 #change predictor matrix for haematocrit and haemoglobin to 0
+predictor_matrix["haematocrit","haemoglobin"] <- 0
+predictor_matrix["haemoglobin","haematocrit"] <- 0
 
 #make imp2 with new predictor matrix
+imp2 <- mice(main_impute, method = meth, predictorMatrix = predictor_matrix,
+            m = 55, maxit = 20)
 
-#plot 2
+#plot imp2
+plot(imp2)
 
 #create cross validation folds
+folds <- createFolds(main_impute$total_los, 5)
 
 #add the cores
+number_of_cores <- detectCores() - 1
+clust <- makeCluster(number_of_cores)
+registerDoParallel(clust)
+
 
 #make for loop including first define train and test data, impute the train data,
 #install recipes package ready for imputing test with different methods. The next
-#steps after that would be to train the model and evaluate but I haven't got to that
-#yet
+#steps after that would be to train the model and evaluate but I haven't got to 
+#that yet
+#-----------------------------------FOR LOOP------------------------------------
+for(x in seq_along(folds)){
+  #Define train and test data
+  test_id <- folds[[x]]
+  train_data <- main_impute[-test_id,]
+  test_data <- main_impute[test_id,]
+  
+  #Impute the train data
+  imp_train <- mice(train_data, method = meth,
+                    predictorMatrix = predictor_matrix, m = 1, maxit = 5)
+  
+  #Train the model
+  #model <-
+  
+  #Impute the test data
+    
+  #Evaluate the model
+  
+}
+
+
+
+
+stopCluster(clust)
