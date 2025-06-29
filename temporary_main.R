@@ -11,6 +11,16 @@ install.packages("caret")
 install.packages("parallel")
 install.packages("doParallel")
 install.packages("recipes")
+install.packages("data.table")
+install.packages("mltools")
+install.packages("glmnet")
+install.packages("xgboost")
+install.packages("DiagrammeR")
+library(DiagrammeR)
+library(xgboost)
+library(glmnet)
+library(data.table)
+library(mltools)
 library(recipes)
 library(doParallel)
 library(parallel)
@@ -470,6 +480,9 @@ main_impute %>%
   
   md.pattern(rotate.names = TRUE)
 
+main_impute$sex <- factor(main_impute$sex)
+main_impute$admission_type <- factor(main_impute$admission_type)
+
 imp <- mice(main_impute, method = "mean", m = 5, maxit = 5)
 
 meth <- imp$method
@@ -534,14 +547,19 @@ number_of_cores <- detectCores() - 1
 clust <- makeCluster(number_of_cores)
 registerDoParallel(clust)
 
-
+clusterEvalQ(clust, library(mice))
+clusterEvalQ(clust, library(dplyr))
+clusterEvalQ(clust, library(mltools))
+clusterEvalQ(clust, library(data.table))
+clusterEvalQ(clust, library(glmnet))
+clusterEvalQ(clust, library(xgboost))
 #make for loop including first define train and test data, impute the train data,
 #install recipes package ready for imputing test with different methods. The next
 #steps after that would be to train the model and evaluate but I haven't got to 
 #that yet
 #---------------------------------FOR LOOP--------------------------------------
 
-for(x in seq_along(folds)){
+results <- foreach(x = seq_along(folds)) %dopar% {
   #Define train and test data
   test_id <- folds[[x]]
   train_data <- main_impute[-test_id,]
@@ -551,15 +569,52 @@ for(x in seq_along(folds)){
   imp_train <- mice(train_data, method = meth,
                     predictorMatrix = predictor_matrix, m = 1, maxit = 5)
   
+  train_onehot <- complete(imp_train, 1) %>%
+    as.data.table() %>%
+    one_hot() %>%
+    as.data.frame()
+  
   train <- complete(imp_train, 1)
   
+  y = train$total_los
+  
+  x = train[, -length(train)]
+  
   #Train the model
+  #Linear regression
   model <- lm(total_los ~ ., train)
   
+  #One-hot
+  model_onehot <- lm(total_los ~ ., train_onehot)
+  
+  #LASSO
+  model_lasso <- glmnet(x, y, alpha = 1)
+  
+  #Ridge
+  model_ridge <- glmnet(x, y, alpha = 0)
+  
+  #xgboost
+ # x_onehot <- complete(imp_train, 1) %>%
+ #   as.data.table() %>%
+  #  one_hot() %>%
+  #  as.data.frame()
+  
+  #xgdata <- xgb.DMatrix(data = as.matrix(x_onehot), label = y)
+  
+  #single_tree <- xgb.train(data = xgdata, nrounds = 1)
+  
+  list(lm = model,
+       lm_onehot = model_onehot,
+       lasso = model_lasso,
+       ridge = model_ridge#,
+       #xgboost = single_tree
+  )
+  
   #Impute the test data
-    
+  
   #Evaluate the model
   
 }
 
 stopCluster(clust)
+

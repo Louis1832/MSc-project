@@ -1,0 +1,407 @@
+\documentclass[11pt]{article}
+\usepackage{setspace}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+\usepackage{ragged2e}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{moresize}
+\usepackage[table]{xcolor}
+\usepackage[left=2.54cm, right=2.54cm, top=2.54cm, bottom=2.54cm]{geometry}
+\newcolumntype{L}[1]{>{\RaggedRight\centering\hyphenchar\font=`\-\arraybackslash}p{#1}}
+\hypersetup{
+    colorlinks,
+    linkcolor = {red!50!black},
+    citecolor = {blue!50!black},
+    urlcolor = {blue!80!black}
+}
+\setstretch{1.5}
+\usepackage[
+backend=biber,
+style=numeric,
+sorting=ynt
+]{biblatex}
+\addbibresource{references.bib}
+\bibliography{references}
+\setmainfont{Arial}
+\newfontfamily\seriffont{Times New Roman}
+\begin{document}
+\title{Machine Learning-Based Prediction of Intensive Care Length of Stay for Lung Cancer Patients Post-Immunotherapy}
+\author{Louis Bolduc}
+\date{September 2024}
+
+\maketitle
+\tableofcontents
+\pagebreak
+
+\begin{abstract}
+    
+\end{abstract}
+
+\renewcommand{\abstractname}{Acknowledgements}
+\begin{abstract}
+ 
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Aims and Objectives}
+The main aim of this project is to build accurate and efficient machine learning models using data from combined MIMIC and immunology datasets to enhance the prediction of the length of stay in the Intensive Care Unit, ICU, for lung cancer patients. In the hope that this would benefit personalised healthcare and resource management in oncology.
+
+The main objectives are the following:
+\begin{itemize}
+    \item Objective 1 - Take the data from the MIMIC and immunology datasets and combine them into one, then create new variables and ensure that the data is appropriately scaled.
+    \item Objective 2 - Build the machine learning models, identifying the most relevant variables to be used to limit model complexity.
+    \item Objective 3 - Evaluate the algorithms to find the model with the best fit for the data and interpret the result.
+\end{itemize}
+
+\subsection{Lung Cancer and Immunotherapy Background}
+Cancer is a disease that involves the uncontrollable multiplication of malignant cells, in some cases forming tumours in organs or tissues. In the UK, and many other countries around the world, cancer has become the leading cause of death, and in the UK specifically it has been reported that around 1 in 2 people will be diagnosed with cancer at some point in their lives. This statistic indicates that the volume of patients requiring ICU treatment will be significantly large and therefore the optimisation of length of stay analysis is key to resource management and patient care planning.
+
+Malignant cancer cells in the body often escape detection, limiting the ability of the immune system to prevent their spread and mitigate the resulting damage. Immunotherapy is a treatment that boosts the immune response and prevents cancer cells from suppressing it, enabling the immune system to detect and destroy cells more effectively. For early stage lung cancer, stages I-III, immunotherapy is still not considered the most effective form of treatment in most cases; however, a significant proportion of patients in the latter stages of the disease will receive some form of this treatment.
+
+\subsection{The MIMIC Database}
+MIMIC is a large relational database that consists of deidentified data collated from thousands of admissions to the intensive care unit of the Beth Israel Deaconess Medical Centre in Boston, Massachusetts. The acronym MIMIC has stood for "Multiparameter Intelligent Monitoring in Intensive Care" and more recently "Medical Information Mart for Intensive Care". Some key features of this database are that it is the only freely accessible critical care database of its kind and contains detailed information on patients spanning more than a decade. The most recent version of the MIMIC database is MIMIC-IV which includes, most importantly, data all the way up to the year 2019 as opposed to 2012 for MIMIC-III. Using the updated version should allow for greater relevance and accuracy of the prediction model. The value of MIMIC in this study lies in the comprehensive real-world data it contains, which enables the model to train more accurately compared to synthetic data, allowing it to fit better to unseen data.
+
+Data can be accessed after completing a short ethics course set up by the CITI programme website.[cite{MIMICethics}]
+
+\subsection{The Curenetics Dataset}
+Curenetics is a medical technology organisation that focusses on building sophisticated predictive models to improve decision making to create treatment plans for cancer patients.
+
+The immunotherapy dataset used in this project was designed in-house at Curenetics, in collaboration with KCL medical students, using data extracted from University of Kent medical reports. Curenetics have full ownership of this dataset.
+
+\subsection{GitHub Repository}
+A GitHub repository has been set up to back up files so that lost work can be retrieved in the event of unexpected technical issues. This will be updated throughout the course of the project.[cite github page]
+
+\section{Methods and Materials}
+
+\subsection{Database Management}
+In order for data to be extracted from the MIMIC database, the data files from physionet should be downloaded and exported into a database schema in pgAdmin 4. From there the database can be queried with SQL commands for data extraction.
+
+To create the schema, this being the frame housing the tables that constitute the database, a SQL script is run, specifically tailored for MIMIC-IV, to construct empty tables ready for the data export process. The script was retrieved from a Github repository.[cite script webpage]
+
+After running the script and having the empty database setup, the data files will need to be prepared ready for export. Some data files were quite large, too large for pgAdmin to export in one process. Therefore the larger data files were split into smaller parts with the use of the Windows powershell command line.[cite command code] Once all the larger data files had been split they were exported into their respective tables in the schema.
+
+\subsection{Data Extraction}
+To obtain the cohort from MIMIC for analysis, the ICD-10 [cite{ICD-10codes}] codes corresponding to the diagnosis of lung cancer are needed to identify the patients required for the study. ICD-10 codes represent various patient diagnoses in alphanumeric form, making it easier to record diagnostic data, thereby reducing the likelihood of incorrect entries. The ICD-10 codes that indicate a patient has lung cancer are the C34 codes, identifying a "Malignant neoplasm of bronchus and lung", or the C78.0 codes, identifying a "Secondary malignant neoplasm of lung". A secondary malignant neoplasm is a cancer that develops as a result of a previous cancer. Along with the ICD-10, MIMIC-IV also uses ICD-9 to indentify health conditions. The ICD-9 codes that correspond to the lung cancer cases that are to be extracted are the 162.9 codes. ICD-10 codelist is the updated version of the ICD-9. ICD-10 was introduced in the middle of the data collection process, ICD-10 was introduced in 2015 and MIMIC-IV was collected between 2008 and 2018. This is the reason both set of codes appear. At the time of writing this report the most up to date ICD codelist in use is ICD-11. If MIMIC-V were to be released, it would be expected that ICD-11 codes would appear.
+
+Through pgAdmin 4, SQL queries were written to sift through the database to extract the data to build a dataset containing the desired output laid out in the script. One of these scripts can be used to find data on the lung cancer patients with ICU stays by extracting from the relevant tables.
+
+Similarly, to find data on each variable separate scripts were written each producing datasets extracted from all the data in the database. For example, a SQL query for temperature data would produce a dataset showing every temperature recording in the database. Later, these datasets were to be used to match each admission to their corresponding records, creating a dataset ready for building the machine learning models. Within the SQL scripts there is a set of commands that can reduce the data down to only those patients with ICU stays. Since this study does not concern hospital stays without an ICU admission, these commands were utilised so that each of the datasets included only admissions with ICU stays.
+
+The datasets, now compiled, were saved into csv files and imported into one R file. After adjustment, as outlined in the data cleaning section, the datasets should all be collated into one.
+
+\begin{itemize}
+    \item SQL queries created to obtain the data for the predictor variables.
+    \item Values are extracted by finding the corresponding label in the labels table with the WHERE command.
+    \item If multiple values are found for one admission the value with the chart time closest to the ICU stay start time is taken.
+    \item The data is filtered down to only include values that are taken more than an hour before the ICU stay start time. In reality you would need time to collect all the data to get a prediction from the model before admission to the ICU.
+    \item The data will be saved as a CSV file to be exported into R.
+\end{itemize}
+
+\subsection{Data Cleaning}
+Some data cleaning was executed in the SQL queries with the rest written in the R code. 
+
+In SQL, as mentioned before, the recordings were reduced down to admissions with ICU stays only. This was done to avoid collecting excessive data that would not be of any use going forward. Also, if in the data there are multiple values of one variable for an admission, the value taken the closest to the ICU admission start time was chosen as the value that would appear in the extracted dataset, with the others discarded.
+
+This study treats each ICU stay as a separate record instead of each patient. This is due to the fact that one patient may have multiple ICU stays within an admission, sometimes spaced out by a considerable amount of time. For a length of stay in ICU to be predicted it is out of bounds of the model to predict and take into account how long each space in between the ICU stays is. Therefore, the patient's first length of stay value was defined as the length of stay of the first ICU admission plus the length of stay of any more readmissions into the ICU which occurred within a day of the discharge.
+
+\subsection{Missing Values}
+Missing values in the data act as a roadblock to meaningful analysis. Machine learning models require the input data to be complete for them to work, and their performance is greatly improved when the missingness is remedied so that the resulting study population matches the true population distribution as closely as possible.
+
+Dealing with missing data can involve the complete omission of records or imputation. Although omission is the simpler method the resulting model is subject to bias as there may be some reason for certain groups to have missing data in a given variable. This bias is apparent when data is missing at random, MAR, or missing not at random, MNAR, which illudes to the concept that the missingness of the data is related to some observed or unobserved data. Therefore, omission of these data could potentially lead to a misrepresentative study population which in turn leads to the aforementioned bias in the prediction models.
+
+The much more valid approach, to minimise bias, is imputation. Imputation is, in simplistic terms, the filling in of missing data, as the approximation of the true data, based on the statistical characteristics of the observed data. Therefore, providing a full dataset that can be used for analysis. There are a few methods of data imputation. Single imputation is a basic imputation method that imputes the missing data with single estimated values. The simplest way to impute the data is to use a statistic such as the mean or the median for numerical data, or the mode for categorical. For datasets with a more significant amount of missing data this imputation method is less suitable as the imputed distribution may vary too much away from the true distribution. To reduce this instead of imputing all the missing data with the same value, methods such as hot deck or regression give imputations that differ depending on the characteristics of each record. The hot deck method uses data from other variables to determine the values of the imputed data, for example matching the patients on age and gender. Regression models for imputation also use data from other variables but as the predictors. It is worth noting that both these methods require the external variables used to be complete. Despite the improvements from using these methods single imputation is not the optimal method when missingness in the dataset is more prevalent and therefore more advanced methods can be considered.
+
+Multiple imputation improves on single imputation in many ways with the use of multiple approximations for the imputed values and allowing for the imputation of several variables in the same process. MI works without modification if the missing data included in the dataset are either MAR or MCAR. For data that is MNAR sometimes with the appropriate adjustments to the data multiple imputation methods are suitable. 
+
+A common MI method is known as multivariate imputation by chained equations (MICE) (2). This method imputes every variable using data from the other variables as predictive inputs the defined model whether it be regression, random forest or some other kind.
+
+Firstly, for the MICE process, the missing data in the dataset is imputed with a statistic such as the mean or median in each variable. The next step is an iterative process that improves the imputations using the other variables in the dataset through a specified predictive method. Each iteration improves the accuracy of the imputed values given that the missingness in the dataset is not too high. These steps are repeated so that eventually M multiple imputed datasets are created. Then the prediction model is run on each of these datasets and the parameters are pooled. In theory this should be an improvement on methods of single imputation.
+\begin{itemize}
+    \item A high percentage of missing data can cause inaccuracies and bias.
+    \item Variables that are not well predicted by the other variables will lead to imputations that are inaccurate.
+\end{itemize}
+
+The MICE process is only suitable for data that is not MNAR, for MNAR data other imputation methods are needed.
+
+\begin{itemize}
+    \item Pattern Mixture Model
+    \item Selection Models
+    \item Bayesian Models
+    \item Sensitivity Analysis
+    \item Inverse Probability Weighting
+\end{itemize}
+
+\subsection{Prediction Models}
+The primary outcome of interest in this study is the metric evaluating the lung cancer patients' length of stay in the ICU. Therefore, experimenting with machine learning prediction models such as decision trees, random forests, and gradient boosting will help identify a suitable and optimal model for predicting the length of stay. Ensemble methods, prediction models incorporating more than one type of model, could provide a more accurate prediction so these are also assessed. To build these models various exposures will need to be taken into account, with the data on these extracted from the MIMIC and Curenetics datasets.
+
+\subsubsection{Linear Regression}
+Linear regression is, compared to other widely known machine learning prediction methods, somewhat simple and easy to understand. It is often used as the first step in many attempts to apply machine learning techniques for prediction purposes. "This paper" shows how a simple linear model can be more effective than other more complex models, with the example of a study involving breast cancer diagnosis prediction.[linear regression comparison] All of which suggests that this method should be evaluated first.
+
+The method itself comes down to the relationship between a dependent variable to be predicted and the independent variables used in the relationship as predictors.[linear regression] Included in this equation is a term as an indicator for the noise evident in the model, in fact one of the main aims in improving the effectiveness of the model is the minimisation of this term.
+
+A univariate version of this model includes only one independent variable for prediction and can be described with a simple equation shown below.
+
+\[y = \beta_0 + \beta_1x +\epsilon\]
+
+Here, \(y\) is the predicted value of the dependent variable. In the case of this report the length of stay in the ICU within a lung cancer patient's admission. \(\beta_0\) refers to the \(y\) intercept given by the equation, which can be visualised by plotting the linear relationship of the model. \(\beta_1\) is the coefficient of the variable \(x\) and is symbolic of the effect the variable has on \(y\). Finally, \(\epsilon\) represents the error term that indicates the noise in the prediction. The predicted data points can be plotted on a 2D x,y plane along with a line of best fit to see the trend.
+
+Since this prediction model is likely to include several dependent variables, it would be more apt to model using the equation for multivariable linear regression. The equation's structure is very similar to the equation for univariate regression but with the added terms to represent the effect of the extra variables on, in this case, the lengths of stay. The equation is as follows.
+
+\[y = \beta_0 + \beta_1x_1 + ... + \beta_mx_m + \epsilon\]
+
+The difference becomes clear upon observation. The number of terms in multivariate regression is represented as the letter \(m\) in the equation. A more succinct way to express this equation is to write it in matrix form [Penn state lecture notes] as follows.
+
+\[Y = X\beta + \epsilon\]
+
+Here, both \(Y\) and \(\epsilon\) are column vectors with dimensions \(n\) x \(1\), \(X\) is a matrix with dimensions \(n\) x \(m\), and \(\beta\) is a column vector \(m\) x \(1\). The vector \(Y\) is a vector of the predicted values, the vector \(\beta\) a vector of the coefficients, and the contents of the matrix \(X\) are the data of the variables used in the prediction. The first column in \(X\) are all 1's to include the value of the intercept \(\beta_0\).
+
+\subsubsection{One Hot Encoding}
+Categorical data are not handled well by machine learning models because they are designed to handle numerical data.
+
+\subsubsection{LASSO and Ridge Regression}
+
+\subsection{Validation Methods}
+It is important to consider the validity of prediction models. There are several methods that are designed to check how well the model has fit to the data and methods are either considered internal or external validation. 
+
+A common method of internal validation is k-fold cross-validation. This involves splitting the dataset into k folds, usually k is set to be 5, one split is used as the test dataset and the others used to train the model. Once the model is trained it can be evaluated on the test dataset. This is then iterated so that each fold is used as the test dataset, meaning that all the data is used both to train and test. The average accuracy can then be evaluated from the predictions made from each test fold. k-fold cross-validation is an improvement on the simpler method of split-sampling, which is essentially a cruder version of the method. Split-sampling could be thought of as equivalent to a 1-fold cross-validation just without rotation on different folds as the data is split into only one training set and one test set.
+
+Leave one out cross-validation is a special case of the k-fold cross-validation method. In this case if there are n records in the dataset then there would be n folds. Effectively in each iteration there is a training dataset of size n-1 and a test set of 1. How this method is performed and evaluated is identical to the k-fold. The main advantage of this method over the k-fold is that since in each iteration the model is trained on almost the complete dataset, n-1, there is a very low bias. The disadvantages, however, are quite significant and include a high variance, high computational cost for larger datasets and an instability due to the high variance. Quite often the computational cost disadvantage alone is enough to find the leave one out method as unsuitable, datasets of size beyond ~1000 are typically not suited to this method because of this downside.
+
+Bootstrap validation is a sophisticated technique that, since about the 1980s/1990s, has become a viable method of model validation for use on larger datasets due to increased computing power. The process involves creating M new datasets of size N from the original dataset. Each dataset may include multiple of the same records found in the original as the sampling is with replacement. The metric of interest in the bootstrapping method is the optimism. The optimism metric shows how much a model overestimates its performance when it is trained on its own data. Each model developed from the bootstrapped datasets is evaluated to obtain performance metrics once on the bootstrapped training data and another the data from the original dataset unselected by the bootstrap and therefore unseen, also commonly referred to as the out-of-bag data. The optimism of each model can then be derived from these two performance values by subtracting the performance on the out-of-bag from the performance on the training. The optimism is averaged over the M bootstrapped datasets to give an average optimism value. This value can be used to adjust the performance metric obtained from a model that is trained and evaluated on the original dataset. This new performance metric is therefore somewhat corrected for bias. Similar to leave one out cross-validation bootstrapping in comparison to k-fold cross-validation is better when the dataset is smaller due to the increased computational complexity and decreased effectiveness in larger datasets.
+
+The best way to validate a machine learning prediction model is to validate externally. A model validated only on the data included in the original dataset still carries a lot of optimism and may fit poorly. Evaluation on relevant data obtained in new settings gives a better estimate of how generalisable the model is to a diverse range of populations. The more external validations performed with a more varied array of data provide a greater picture of the generalisability. This is important because if the model is applied to populations with demographics dissimilar to those represented in the training or testing data, the likelihood of inaccurate predictions increases, potentially leading to inefficiencies that reduce the model's usefulness.
+
+\subsection{Data Augmentation}
+Data augmentation is the process of enhancing a dataset by applying transformations to the original data to generate additional data. It may be of interest to augment the data as there is a possibility that it could improve the model's accuracy and help it fit better to unseen data.
+
+\section{Results}
+
+\subsection{Patient Demographics}
+{\seriffont
+{\small
+\renewcommand{\arraystretch}{1}
+%\centering
+\begin{center}
+
+\setlength{\arrayrulewidth}{0.7mm}
+\begin{longtable}{ |L{7.5cm} | L{6cm} |} 
+    \hline 
+    Characteristic & N = 2303\\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Number of previous ICU stays (within admission)} \\
+    \hline
+        0  & 2,115 (92.0\%) \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+        1  & 171 (7.4\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+        2  & 13 (0.6\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+        3 & 3 (0.1\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+        4 & 1 (<0.1\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Age (years)} \\
+    \hline
+       18-40   & 14 (0.6\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       41-50   & 93 (4.0\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       51-60   & 386 (16.8\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       61-70   & 769 (33.4\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       71-80   & 668 (29.0\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       81-90   & 318 (13.8\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       91+     & 55 (2.4\%)\\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Sex} \\
+    \hline
+       Male  & 1,237 (54\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Female  & 1,066 (46\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Ethnicity} \\
+    \hline
+       White  & 1,671 (72.6\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Black  & 217 (9.4\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Asian  & 122 (5.3\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Hispanic/Latino  & 49 (2.1\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Other & 66 (2.9\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Missing & 178 (7.7\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Insurance} \\
+    \hline
+       Medicare  & 1,418 (61.6\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Private   & 537 (23.3\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Medicaid  & 288 (12.5\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Other  & 44 (1.9\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Missing  & 16 (0.7\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Admission Type} \\
+    \hline
+       Emergency & 1,278 (55.5\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Observation & 365 (15.9\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Urgent & 335 (14.5\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Elective & 325 (14.1\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Platelets (k/µL)} \\
+    \hline
+       Mean (SD) & 265.8 (133.1) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,347 (58.5) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Glucose (mg/dL)} \\
+    \hline
+       Mean (SD) & 137.2 (78.9) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,252 (54.4) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Chloride (mEq/L)} \\
+    \hline
+       Mean (SD) & 100.4 (8.0) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,259 (54.7) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Potassium (mEq/L)} \\
+    \hline
+       Mean (SD) & 4.7 (4.9)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing & 1,244 (54.0)\\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Haemoglobin (g/dL)} \\
+    \hline
+       Mean (SD) & 10.6 (2.6) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,258 (54.6) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Haematocrit (\%)} \\
+    \hline
+       Mean (SD) & 32.7 (6.7) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,249 (54.2) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Sodium (mEq/L)} \\
+    \hline
+       Mean (SD) & 135.3 (13.0) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,250 (54.3) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Drugs taken} \\
+    \hline
+       Ondansetron & 397 (17.2\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Calcium Gluconate & 926 (40.2\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Death in ICU} \\
+    \hline
+       Survived & 1775 (77.1\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Deceased & 528 (22.9\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{Length of stay (days)} \\
+    \hline
+       Mean (SD) & 3.9 (5.2) \\
+    \hline
+    \caption{Caption}
+    \label{tab:my_label}
+\end{longtable}
+\end{center}}
+\normalsize
+
+\subsection{Feature Importance}
+
+\subsection{Evaluation Metrics}
+
+\section{Discussion}
+
+\section{Conclusion}
+
+\printbibliography
+
+\section*{Appendix}
+\addcontentsline{toc}{section}{Appendices}
+
+\end{document}
+
