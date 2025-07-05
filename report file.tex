@@ -141,7 +141,7 @@ The primary outcome of interest in this study is the metric evaluating the lung 
 \subsubsection{Linear Regression}
 Linear regression is, compared to other widely known machine learning prediction methods, somewhat simple and easy to understand. It is often used as the first step in many attempts to apply machine learning techniques for prediction purposes. "This paper" shows how a simple linear model can be more effective than other more complex models, with the example of a study involving breast cancer diagnosis prediction.[linear regression comparison] All of which suggests that this method should be evaluated first.
 
-The method itself comes down to the relationship between a dependent variable to be predicted and the independent variables used in the relationship as predictors.[linear regression] Included in this equation is a term as an indicator for the noise evident in the model, in fact one of the main aims in improving the effectiveness of the model is the minimisation of this term.
+The method itself comes down to the relationship between a dependent variable to be predicted and the independent variables used in the relationship as predictors.[linear regression] Included in this equation is a term as an indicator for the noise evident in the model, in fact one of the main aims in improving the effectiveness of the model is the minimisation of this term. This is referred to as ordinary least squares regression or OLS when the error terms have constant variance.
 
 A univariate version of this model includes only one independent variable for prediction and can be described with a simple equation shown below.
 
@@ -149,20 +149,47 @@ A univariate version of this model includes only one independent variable for pr
 
 Here, \(y\) is the predicted value of the dependent variable. In the case of this report the length of stay in the ICU within a lung cancer patient's admission. \(\beta_0\) refers to the \(y\) intercept given by the equation, which can be visualised by plotting the linear relationship of the model. \(\beta_1\) is the coefficient of the variable \(x\) and is symbolic of the effect the variable has on \(y\). Finally, \(\epsilon\) represents the error term that indicates the noise in the prediction. The predicted data points can be plotted on a 2D x,y plane along with a line of best fit to see the trend.
 
-Since this prediction model is likely to include several dependent variables, it would be more apt to model using the equation for multivariable linear regression. The equation's structure is very similar to the equation for univariate regression but with the added terms to represent the effect of the extra variables on, in this case, the lengths of stay. The equation is as follows.
+Since this prediction model is likely to include several independent variables, it would be more apt to model using the equation for multivariable linear regression. The equation's structure is very similar to the equation for univariate regression but with the added terms to represent the effect of the extra variables on, in this case, the lengths of stay. The equation is as follows.
 
-\[y = \beta_0 + \beta_1x_1 + ... + \beta_mx_m + \epsilon\]
+\[y = \beta_0 + \beta_1x_1 + ... + \beta_px_p + \epsilon\]
 
-The difference becomes clear upon observation. The number of terms in multivariate regression is represented as the letter \(m\) in the equation. A more succinct way to express this equation is to write it in matrix form [Penn state lecture notes] as follows.
+The difference becomes clear upon observation. The number of terms in multivariate regression is represented as the letter \(p\) in the equation. A more succinct way to express this equation is to write it in matrix form [Penn state lecture notes] as follows.
 
 \[Y = X\beta + \epsilon\]
 
-Here, both \(Y\) and \(\epsilon\) are column vectors with dimensions \(n\) x \(1\), \(X\) is a matrix with dimensions \(n\) x \(m\), and \(\beta\) is a column vector \(m\) x \(1\). The vector \(Y\) is a vector of the predicted values, the vector \(\beta\) a vector of the coefficients, and the contents of the matrix \(X\) are the data of the variables used in the prediction. The first column in \(X\) are all 1's to include the value of the intercept \(\beta_0\).
+Here, both \(Y\) and \(\epsilon\) are column vectors with dimensions \(n\) x \(1\), \(X\) is a matrix with dimensions \(n\) x \(p\), and \(\beta\) is a column vector \(p\) x \(1\). The vector \(Y\) is a vector of the predicted values, the vector \(\beta\) a vector of the coefficients, and the contents of the matrix \(X\) are the data of the variables used in the prediction. The first column in \(X\) are all 1's to include the value of the intercept \(\beta_0\).
+
+Since the key goal in improving a linear regression model is minimising the error term the equation that the computer code seeks uses to do this is a rearranged version of the earlier equation which is written to make predictions for the depedent variable \(y\). The rearranged equation simply puts the error term in the place of \(y\).  Since the sum of the residuals, a name for the error term values, is always zero minimising the sum of the residuals would not make any sense. Therefore the sum of the squared residuals must be observed to evaluate the model.  The equation is called the residual sum of squares and is shown below.
+
+\[RSS = \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_jx_{ij})^2\]
+
+With \(i\) representing an individual record summing to the sample size of \(n\) and \(j\) representing a predictor variable among \(p\) predictor variables. So the function to build the model within the code would find the  \(\beta\) values to minimise this equation, these \(\beta\) values can then be used in the original equation to predict the dependent \(y\) variable.
 
 \subsubsection{One Hot Encoding}
-Categorical data are not handled well by machine learning models because they are designed to handle numerical data.
+Categorical data are not handled well by machine learning models because they are designed to handle numerical data. This is where one hot encoding comes in. The idea, to put it briefly, is to assign binary values as an indication as to which category the record falls into. For example if a categorical variable has four categories then four separate columns would be created. Let's say a category in that variable is urgent admission then every admission record included in this category would receive a value of 1 and the others a value of 0. As would be the same for the other categories in that variable
 
 \subsubsection{LASSO and Ridge Regression}
+LASSO and ridge regression models introduce a \(\beta\) coefficient penalisation term which minimises their value towards zero to reduce overfitting in the model. When the model is overfitting it is trained too well to make predictions on the training data. This is a problem because any new data, which in some way would definitely differ from the data the model is trained on in it's composition, used to make predictions would produce predictions that may be far from equivalent to the actual values. So these two regression models both introduce a lambda term which needs to be tuned carefully to find the best model that reduces overfitting, improves prediction and does this without creating an overly complex model. So the equation for these two models is very similar to the equation for the OLS. For ridge regression the equation is as follows.
+
+\[RSS + Penalty = \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_jx_{ij})^2 + \lambda\sum_{j=1}^{p}\beta_j^2\]
+
+And the LASSO equation is written below.
+
+\[RSS + Penalty = \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_jx_{ij})^2 + \lambda\sum_{j=1}^{p}|\beta|\]
+
+In both these equations \(\lambda \in [0, \infty)\).
+
+Here we see the difference in the two models and how they are both linked to OLS. Essentially when the value of \(\lambda\) is zero there is no penality so you are left with the minimisation of the RSS alone and an equation for the OLS with the \(\beta\) values being the same as they are in this model. 
+
+Plotting the contours of the error and the constraint regions [datasklr cite] help to visualise how the \(\beta\) coefficients are pushed to zero with these methods.
+
+\begin{center}
+\includegraphics[width = 150mm, scale = 0.75]{penalised models graphs}
+\end{center}
+
+So what can be seen here from the three penalisation model graphs are three differing shapes for the constraint regions. The ellipses represent the contours of the RSS values away from the OLS. The constraint regions will increase in size as \(\lambda \to 0\) which would bring the \(\beta\) values to their OLS values. However, if  \(\lambda\)  does not equal zero then the constraint shrinks along with the \(\beta\) values as they are evaluated at the point where the RSS + penalty contours intersect with the constraint region. The reason why LASSO pushes some coefficients to zero is shown in these plots. Because of its diamond shape there is a possibility that the contours intersect with the constraint region on the axes. This is not possible with ridge regression since in OLS no coefficients have zero values and therefore the contours will not intersect the circular shape at the axes. The third plot from the right shows the constraint region for an elastic net which is the middle ground between LASSO and ridge regression. Here the coefficients may get pushed quite close to zero but will never reach it.
+
+\subsubsection{xgBoost}
 
 \subsection{Validation Methods}
 It is important to consider the validity of prediction models. There are several methods that are designed to check how well the model has fit to the data and methods are either considered internal or external validation. 

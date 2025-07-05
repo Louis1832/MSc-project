@@ -16,6 +16,10 @@ install.packages("mltools")
 install.packages("glmnet")
 install.packages("xgboost")
 install.packages("DiagrammeR")
+install.packages("car")
+install.packages("randomForest")
+library(randomForest)
+library(car)
 library(DiagrammeR)
 library(xgboost)
 library(glmnet)
@@ -576,38 +580,89 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   
   train <- complete(imp_train, 1)
   
-  y = train$total_los
+  y_train = train$total_los
   
-  x = train[, -length(train)]
+  x_train = train[, -length(train)]
   
   #Train the model
   #Linear regression
   model <- lm(total_los ~ ., train)
   
+  model2 <- lm(log(total_los) ~ ., train)
+  
+  model3 <- lm(formula = log(total_los) ~ age + admission_type + insurance + 
+       previous_stay + platelets + chloride + calcium_gluconate + 
+       hospital_expire_flag, data = train)
+  
   #One-hot
   model_onehot <- lm(total_los ~ ., train_onehot)
   
   #LASSO
-  model_lasso <- glmnet(x, y, alpha = 1)
+  model_lasso <- glmnet(x_train, y_train, alpha = 1)
+  
+  lamdagrid <- c(0.001, 0.005, 0.01, 0.05, 0.1)
+  
+  for(lam in lamdagrid ) {
+    model_lasso2 <- glmnet(x_train, y_train, alpha = 1, lamda = lam)
+    
+    #predict on train
+    #predict on test
+    
+    #confusion matricies
+  }
   
   #Ridge
-  model_ridge <- glmnet(x, y, alpha = 0)
+  model_ridge <- glmnet(x_train, y_train, alpha = 0)
+  
+  for(lam in lamdagrid ) {
+    model_ridge2 <- glmnet(x_train, y_train, alpha = 0, lamda = lam)
+    
+    #predict on train
+    #predict on test
+    
+    #confusion matricies
+  }
+  
+  #Random Forest
+  rm_1 <- randomForest(total_los~., data = train)
+  
+  rm_2 <- tuneRF(
+        x = x_trian,
+        y = y_train,
+        ntreeTry = 50, 
+        mtryStart = 2,
+        stepFactor = 0.5,
+        improve = 0.01, 
+        trace = FALSE)
+  
+  rmse_rm_1 <- sqrt(mean(rm_1$mse))
   
   #xgboost
- # x_onehot <- complete(imp_train, 1) %>%
- #   as.data.table() %>%
-  #  one_hot() %>%
-  #  as.data.frame()
+  x_onehot <- complete(imp_train, 1) %>%
+    as.data.table() %>%
+    one_hot() %>%
+    as.data.frame()
   
-  #xgdata <- xgb.DMatrix(data = as.matrix(x_onehot), label = y)
+  x_test <- test_data[, -c(length(test_data), length(test_data)-1)]
   
-  #single_tree <- xgb.train(data = xgdata, nrounds = 1)
+  xgdata <- xgb.DMatrix(data = as.matrix(x_onehot), label = y_train)
+  
+  single_tree <- xgb.train(data = xgdata, nrounds = 1)
+  
+  #xg_test <- xgb.DMatrix(data = as.matrix())
+  
+  xgboost_multi <- xgb.train(data = xgdata,
+                           #enable_categorical = TRUE,
+                           tree_method = "hist",
+                           objective = "reg:squarederror",
+                           nrounds = 100)
   
   list(lm = model,
        lm_onehot = model_onehot,
        lasso = model_lasso,
-       ridge = model_ridge#,
-       #xgboost = single_tree
+       ridge = model_ridge,
+       xgboost_single = single_tree,
+       xgboost = xgboost_multi
   )
   
   #Impute the test data
@@ -617,4 +672,18 @@ results <- foreach(x = seq_along(folds)) %dopar% {
 }
 
 stopCluster(clust)
+
+xgb.plot.tree(model = results[[1]]$xgboost)
+
+
+
+
+
+
+
+
+
+
+
+
 
