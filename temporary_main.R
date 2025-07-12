@@ -500,7 +500,7 @@ meth["age"] <- "norm"
 meth["ondansetron"] <- "logreg"
 meth["calcium_gluconate"] <- "logreg"
 meth["hospital_expire_flag"] <- "logreg"
-meth["total_los"] <- "norm"
+meth["total_los"] <- ""
 meth["previous_stay"] <- "polyreg"
 meth["glucose"] <- "pmm"
 meth["sodium"] <- "pmm"
@@ -546,6 +546,9 @@ plot(imp2)
 #create cross validation folds
 folds <- createFolds(main_impute$total_los, 5)
 
+#number of rounds of imputations
+m <- 5
+
 #add the cores
 number_of_cores <- detectCores() - 1
 clust <- makeCluster(number_of_cores)
@@ -571,12 +574,29 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   
   #Impute the train data
   imp_train <- mice(train_data, method = meth,
-                    predictorMatrix = predictor_matrix, m = 1, maxit = 5)
+                    predictorMatrix = predictor_matrix, m = m, maxit = 5)
   
-  train_onehot <- complete(imp_train, 1) %>%
+  onehot_list <- list()
+  
+  for (y in 1:m){
+  train_onehot <- complete(imp_train, y) %>%
     as.data.table() %>%
     one_hot() %>%
     as.data.frame()
+  
+  onehot_list[[y]] <- train_onehot
+  }
+  
+  lm_models <- lapply(onehot_list,
+                      function(train_onehot)
+                      lm(total_los ~ ., data = train_onehot)) %>%
+    as.mira()
+  
+  attr(lm_models, "call") <- quote(with.mids(data = imp_train,
+                                             expr = lm(total_los ~ .)))
+    
+  pooled_lm <- pool(lm_models)
+  
   
   train <- complete(imp_train, 1)
   
@@ -600,10 +620,10 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   #LASSO
   model_lasso <- glmnet(x_train, y_train, alpha = 1)
   
-  lamdagrid <- c(0.001, 0.005, 0.01, 0.05, 0.1)
+  lambdagrid <- c(0.001, 0.005, 0.01, 0.05, 0.1)
   
-  for(lam in lamdagrid ) {
-    model_lasso2 <- glmnet(x_train, y_train, alpha = 1, lamda = lam)
+  for(lam in lambdagrid ) {
+    model_lasso2 <- glmnet(x_train, y_train, alpha = 1, lambda = lam)
     
     #predict on train
     #predict on test
@@ -614,8 +634,8 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   #Ridge
   model_ridge <- glmnet(x_train, y_train, alpha = 0)
   
-  for(lam in lamdagrid ) {
-    model_ridge2 <- glmnet(x_train, y_train, alpha = 0, lamda = lam)
+  for(lam in lambdagrid ) {
+    model_ridge2 <- glmnet(x_train, y_train, alpha = 0, lambda = lam)
     
     #predict on train
     #predict on test
@@ -627,10 +647,10 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   rm_1 <- randomForest(total_los~., data = train)
   
   rm_2 <- tuneRF(
-        x = x_trian,
+        x = x_train,
         y = y_train,
         ntreeTry = 50, 
-        mtryStart = 2,
+        mtryStart = 5,
         stepFactor = 0.5,
         improve = 0.01, 
         trace = FALSE)

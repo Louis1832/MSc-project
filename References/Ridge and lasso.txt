@@ -1,0 +1,3 @@
+https://www.datasklr.com/extensions-of-ols-regression/regularization-and-shrinkage-ridge-lasso-and-elastic-net-regression
+
+accessed 07/07/2025
