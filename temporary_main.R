@@ -18,6 +18,8 @@ install.packages("xgboost")
 install.packages("DiagrammeR")
 install.packages("car")
 install.packages("randomForest")
+install.packages("forcats")
+library(forcats)
 library(randomForest)
 library(car)
 library(DiagrammeR)
@@ -543,8 +545,41 @@ plot(imp2)
 
 #-------------------------------PREDICTION MODELS-------------------------------
 
+main_impute_NA <- main_impute %>%
+  mutate(ethnicity = ethnicity %>% 
+           addNA() %>%
+           fct_explicit_na(na_level = "NA") %>%
+           relevel(ref = "NA"),
+         insurance = insurance %>%
+           addNA() %>%
+           fct_explicit_na(na_level = "NA") %>%
+           relevel(ref = "NA"),
+         )
+
+main_dummy_data <- recipe(total_los ~ ., data = main_impute_NA) %>%
+  step_dummy(all_nominal(), one_hot = FALSE) %>%
+  prep() %>%
+  bake(new_data = NULL)
+
+imp_dummy <- mice(main_dummy_data, m = 5, maxit = 5)
+
+imp_dummy$method
+
+View(imp_dummy$predictorMatrix)
+
+predictor_matrix_dummy <- imp_dummy$predictorMatrix
+
+predictor_matrix["haematocrit","haemoglobin"] <- 0
+predictor_matrix["haemoglobin","haematocrit"] <- 0
+
+meth_dummy <- imp_dummy$method
+
+variables <- paste(names(main_dummy_data[,-9]), collapse = " + ")
+
+full_model <- paste(c("total_los", variables), collapse = " ~ ")
+
 #create cross validation folds
-folds <- createFolds(main_impute$total_los, 5)
+folds <- createFolds(main_dummy_data$total_los, 5)
 
 #number of rounds of imputations
 m <- 5
@@ -560,6 +595,7 @@ clusterEvalQ(clust, library(mltools))
 clusterEvalQ(clust, library(data.table))
 clusterEvalQ(clust, library(glmnet))
 clusterEvalQ(clust, library(xgboost))
+clusterEvalQ(clust, library(randomForest))
 #make for loop including first define train and test data, impute the train data,
 #install recipes package ready for imputing test with different methods. The next
 #steps after that would be to train the model and evaluate but I haven't got to 
@@ -569,33 +605,37 @@ clusterEvalQ(clust, library(xgboost))
 results <- foreach(x = seq_along(folds)) %dopar% {
   #Define train and test data
   test_id <- folds[[x]]
-  train_data <- main_impute[-test_id,]
-  test_data <- main_impute[test_id,]
+  train_data <- main_dummy_data[-test_id,]
+  test_data <- main_dummy_data[test_id,]
   
   #Impute the train data
-  imp_train <- mice(train_data, method = meth,
-                    predictorMatrix = predictor_matrix, m = m, maxit = 5)
+  imp_train <- mice(train_data, method = meth_dummy,
+                    predictorMatrix = predictor_matrix_dummy, m = m, maxit = 5)
   
-  onehot_list <- list()
+  lm_models <- with(imp_train, lm(formula = as.formula(full_model)))
   
-  for (y in 1:m){
-  train_onehot <- complete(imp_train, y) %>%
-    as.data.table() %>%
-    one_hot() %>%
-    as.data.frame()
-  
-  onehot_list[[y]] <- train_onehot
-  }
-  
-  lm_models <- lapply(onehot_list,
-                      function(train_onehot)
-                      lm(total_los ~ ., data = train_onehot)) %>%
-    as.mira()
-  
-  attr(lm_models, "call") <- quote(with.mids(data = imp_train,
-                                             expr = lm(total_los ~ .)))
-    
   pooled_lm <- pool(lm_models)
+  
+  #onehot_list <- list()
+  
+  #for (y in 1:m){
+  #train_onehot <- complete(imp_train, y) %>%
+  #  as.data.table() %>%
+  #  one_hot() %>%
+  #  as.data.frame()
+  
+  #onehot_list[[y]] <- train_onehot
+  #}
+  
+ # lm_models <- lapply(onehot_list,
+   #                   function(train_onehot)
+    #                  lm(total_los ~ ., data = train_onehot)) %>%
+  #  as.mira()
+  
+  #attr(lm_models, "call") <- quote(with.mids(data = imp_train,
+  #                                           expr = lm(total_los ~ .)))
+    
+  #pooled_lm <- pool(lm_models)
   
   
   train <- complete(imp_train, 1)
@@ -610,12 +650,12 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   
   model2 <- lm(log(total_los) ~ ., train)
   
-  model3 <- lm(formula = log(total_los) ~ age + admission_type + insurance + 
-       previous_stay + platelets + chloride + calcium_gluconate + 
-       hospital_expire_flag, data = train)
+  #model3 <- lm(formula = log(total_los) ~ age + admission_type + insurance + 
+       #previous_stay + platelets + chloride + calcium_gluconate + 
+       #hospital_expire_flag, data = train)
   
   #One-hot
-  model_onehot <- lm(total_los ~ ., train_onehot)
+  #model_onehot <- lm(total_los ~ ., train_onehot)
   
   #LASSO
   model_lasso <- glmnet(x_train, y_train, alpha = 1)
@@ -658,31 +698,32 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   rmse_rm_1 <- sqrt(mean(rm_1$mse))
   
   #xgboost
-  x_onehot <- complete(imp_train, 1) %>%
-    as.data.table() %>%
-    one_hot() %>%
-    as.data.frame()
+  #x_onehot <- complete(imp_train, 1) %>%
+  #  as.data.table() %>%
+  #  one_hot() %>%
+  #  as.data.frame()
   
-  x_test <- test_data[, -c(length(test_data), length(test_data)-1)]
+  #x_test <- test_data[, -c(length(test_data), length(test_data)-1)]
   
-  xgdata <- xgb.DMatrix(data = as.matrix(x_onehot), label = y_train)
+  #xgdata <- xgb.DMatrix(data = as.matrix(x_onehot), label = y_train)
   
-  single_tree <- xgb.train(data = xgdata, nrounds = 1)
+  #single_tree <- xgb.train(data = xgdata, nrounds = 1)
   
   #xg_test <- xgb.DMatrix(data = as.matrix())
   
-  xgboost_multi <- xgb.train(data = xgdata,
+ # xgboost_multi <- xgb.train(data = xgdata,
                            #enable_categorical = TRUE,
-                           tree_method = "hist",
-                           objective = "reg:squarederror",
-                           nrounds = 100)
+   #                        tree_method = "hist",
+   #                        objective = "reg:squarederror",
+   #                        nrounds = 100)
   
-  list(lm = model,
-       lm_onehot = model_onehot,
+  list(lm = pooled_lm,
+       #lm_onehot = model_onehot,
        lasso = model_lasso,
        ridge = model_ridge,
-       xgboost_single = single_tree,
-       xgboost = xgboost_multi
+       random_forest = rm_1
+    #   xgboost_single = single_tree,
+    #   xgboost = xgboost_multi
   )
   
   #Impute the test data
@@ -693,7 +734,7 @@ results <- foreach(x = seq_along(folds)) %dopar% {
 
 stopCluster(clust)
 
-xgb.plot.tree(model = results[[1]]$xgboost)
+#xgb.plot.tree(model = results[[1]]$xgboost)
 
 
 
