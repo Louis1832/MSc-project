@@ -21,6 +21,10 @@ install.packages("randomForest")
 install.packages("forcats")
 install.packages("tweedie")
 install.packages("statmod")
+install.packages("yardstick")
+install.packages("Metrics")
+library(Metrics)
+library(yardstick)
 library(statmod)
 library(tweedie)
 library(forcats)
@@ -590,6 +594,16 @@ folds <- createFolds(main_dummy_data$total_los, 5)
 #number of rounds of imputations
 m <- 5
 
+lam_ridge_rmse <- list()
+
+lam_ridge_mae <- list()
+
+lam_lasso_rmse <- list()
+
+lam_lasso_mae <- list()
+
+
+
 #add the cores
 number_of_cores <- detectCores() - 1
 clust <- makeCluster(number_of_cores)
@@ -602,6 +616,8 @@ clusterEvalQ(clust, library(data.table))
 clusterEvalQ(clust, library(glmnet))
 clusterEvalQ(clust, library(xgboost))
 clusterEvalQ(clust, library(randomForest))
+clusterEvalQ(clust, library(Metrics))
+             
 #make for loop including first define train and test data, impute the train data,
 #install recipes package ready for imputing test with different methods. The next
 #steps after that would be to train the model and evaluate but I haven't got to 
@@ -618,7 +634,8 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   imp_train <- mice(train_data, method = meth_dummy,
                     predictorMatrix = predictor_matrix_dummy, m = m, maxit = 5)
   
-  lm_models <- with(imp_train, lm(formula = as.formula(full_model)))
+  lm_models <- with(imp_train, glm(formula = as.formula(full_model),
+                                   family = gamma))
   
   pooled_lm <- pool(lm_models)
   
@@ -648,8 +665,11 @@ results <- foreach(x = seq_along(folds)) %dopar% {
     mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
   
   #work out the performance metric - output
-  lm_rmse <- rmse(preds = predictions_df$total_los,
+  lm_rmse <- mltools::rmse(preds = predictions_df$total_los,
                   imputed_test_data[[1]]$total_los)
+  
+  lm_mae <- Metrics::mae(actual = imputed_test_data[[1]]$total_los,
+                predicted = predictions_df$total_los)
   
   ##ridge
   
@@ -717,92 +737,424 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   
   imputed_datasets <- complete(imp_train, "all")
   
-  model_lasso <- glmnet(x_train, y_train, alpha = 1)
+ # model_lasso <- glmnet(x_train, y_train, alpha = 1)
   
-  lambdagrid <- c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 1.5, 2, 2.5, 3, 3.5)
+  #lambdagrid <- c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 1.5, 2, 2.5, 3, 3.5)
   
-  lasso_list <- list()
+  lasso_list_rmse <- list()
+  
+  lasso_list_mae <- list()
   
   lasso_rmse_list <- list()
   
-  for(lam in lambdagrid ) {
-    for (i in seq_along(imputed_datasets)){
-      y_train <- imputed_datasets[[i]]$total_los
-      x_train <- imputed_datasets[[i]][, -9]
+  lasso_mae_list <- list()
+  
+  #for(lam in lambdagrid ) {
+    #for (i in seq_along(imputed_datasets)){
+      #y_train <- imputed_datasets[[i]]$total_los
+      #x_train <- imputed_datasets[[i]][, -9]
       
-      model_lasso <- glmnet(x_train, y_train, alpha = 1, lambda = lam)
+      #model_lasso <- glmnet(x_train, y_train, alpha = 1, lambda = lam)
       
-      lasso_list[[i]] <- model_lasso
+     # lasso_list[[i]] <- model_lasso
+    #}
+    
+    #prediction_matrix <- matrix(, nrow = nrow(test_data), ncol = 0)
+    
+    #for (x in imputed_test_data) {
+     # x_variables <- x[,-9]
+      #for (y in seq_along(lasso_list)){
+      #  los_pred <- predict(lasso_list[[y]], as.matrix(x_variables))#, #type = "response")
+     #   prediction_matrix <- cbind(prediction_matrix, los_pred)
+    #  }
+   # }
+    
+    #predictions <- rowMeans(prediction_matrix)
+    
+    #predictions_df <- as.data.frame(predictions) %>%
+      #rename(total_los = predictions) %>%
+     # mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+    
+    #lasso_rmse <- mltools::rmse(preds = predictions_df$total_los,
+     #               imputed_test_data[[1]]$total_los)
+    
+    #lasso_mae <- mae(actual = imputed_test_data[[1]]$total_los,
+     #                predicted = predictions_df$total_los)
+    
+    #lasso_rmse_list <- append(lasso_rmse_list, lasso_rmse)
+    
+   # lasso_mae_list <- append(lasso_mae_list, lasso_mae)
+  #}
+  
+  #lasso_rmse_df <- as.data.frame(lasso_rmse_list)
+  
+  #lasso_mae_df <- as.data.frame(lasso_mae_list)
+  
+  #colnames(lasso_rmse_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
+   #                            "1", "1.5", "2", "2.5", "3", "3.5")
+  
+ # colnames(lasso_mae_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
+  #                             "1", "1.5", "2", "2.5", "3", "3.5")
+  
+  #for (i in seq_along(imputed_datasets)){
+   # y_train <- imputed_datasets[[i]]$total_los
+  #  x_train <- imputed_datasets[[i]][, -9]
+    
+    #cv_lasso <- cv.glmnet(as.matrix(x_train), y_train, alpha = 1, nfolds = 5)
+    
+    #model_lasso <- glmnet(x_train, y_train, alpha = 1, lambda = lam)
+    
+    #opt_lam <- cv_lasso$lambda.min
+    
+    #model_lasso <- glmnet(as.matrix(x_train), y_train, alpha = 1,
+     #                     lambda = opt_lam)
+    
+   # lasso_list[[i]] <- model_lasso
+  #}
+  
+  #prediction_matrix <- matrix(, nrow = nrow(test_data), ncol = 0)
+  
+  #for (x in imputed_test_data) {
+   # x_variables <- x[,-9]
+    #for (y in seq_along(lasso_list)){
+     # los_pred <- predict(lasso_list[[y]], as.matrix(x_variables))#, #type = "response")
+      #prediction_matrix <- cbind(prediction_matrix, los_pred)
+    #}
+    #}
+    
+    #predictions <- rowMeans(prediction_matrix)
+    
+   # predictions_df <- as.data.frame(predictions) %>%
+    #  rename(total_los = predictions) %>%
+     # mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+    
+  #  lasso_rmse <- mltools::rmse(preds = predictions_df$total_los,
+     #                           imputed_test_data[[1]]$total_los)
+    
+    #lasso_mae <- Metrics::mae(actual = imputed_test_data[[1]]$total_los,
+   #                           predicted = predictions_df$total_los)
+    
+  #  lasso_rmse_list <- append(lasso_rmse_list, lasso_rmse)
+    
+   # lasso_mae_list <- append(lasso_mae_list, lasso_mae)
+  #}
+  
+  #lasso_rmse_df <- as.data.frame(lasso_rmse_list)
+  
+  #lasso_mae_df <- as.data.frame(lasso_mae_list)
+  
+  
+  opt_lam_lasso_rmse <- list()
+  
+  opt_lam_lasso_mae <-list()
+  
+  rmse_cv_list <- list()
+  
+  mae_cv_list <- list()
+  
+  for (i in seq_along(imputed_datasets)){
+    y_train <- imputed_datasets[[i]]$total_los
+    x_train <- imputed_datasets[[i]][, -9]
+    
+    cv_lasso <- cv.glmnet(as.matrix(x_train), y_train, alpha = 1, nfolds = 5)
+    
+    cv_lasso_mae <- cv.glmnet(as.matrix(x_train), y_train, alpha = 1,
+                              nfolds = 5, type.measure = "mae")
+    
+    #model_lasso <- glmnet(x_train, y_train, alpha = 1, lambda = lam)
+    
+    opt_lam <- cv_lasso$lambda.min
+    
+    rmse_cv <- sqrt(cv_lasso$cvm)
+    
+    opt_lam_lasso_rmse <- append(opt_lam_lasso_rmse, opt_lam)
+    
+    rmse_cv_list <- append(rmse_cv_list, rmse_cv)
+    
+    opt_lam_mae <- cv_lasso_mae$lambda.min
+    
+    mae_cv <- cv_lasso_mae$cvm
+    
+    opt_lam_lasso_mae <- append(opt_lam_lasso_mae, opt_lam_mae)
+    
+    mae_cv_list <- append(mae_cv_list, mae_cv)
+    
+    #model_ridge_rmse <- glmnet(as.matrix(x_train), y_train, alpha = 0,
+    #lambda = opt_lam)
+    
+    #model_ridge_mae <- glmnet(as.matrix(x_train), y_train, alpha = 0,
+    #lambda = opt_lam_mae)
+    
+    #ridge_list_rmse[[i]] <- model_ridge_rmse
+    
+    #ridge_list_mae[[i]] <- model_ridge_mae
+  }
+  
+  lasso_lam_rmse_df <- data.frame(
+    lambda = unlist(opt_lam_lasso),
+    rmse = unlist(rmse_cv_list)
+  )
+  
+  opt_ind_lasso_rmse <- which.min(lasso_lam_rmse_df$rmse)
+  lasso_tuned_lambda_rmse <- lasso_lam_rmse_df[opt_ind_lasso_rmse]
+  
+  lam_lasso_rmse <- append(lam_lasso_rmse, lasso_tuned_lambda_rmse)
+  
+  lasso_lam_mae_df <- data.frame(
+    lambda = unlist(opt_lam_lasso),
+    mae = unlist(mae_cv_list)
+  )
+  
+  opt_ind_lasso_mae <- which.min(lasso_lam_mae_df$mae)
+  lasso_tuned_lambda_mae <- lasso_lam_mae_df[opt_ind_lasso_mae]
+  
+  lam_lasso_mae <- append(lam_lasso_mae, lasso_tuned_lambda_mae)
+  
+  for (i in seq_along(imputed_datasets)){
+    y_train <- imputed_datasets[[i]]$total_los
+    x_train <- imputed_datasets[[i]][, -9]
+    
+    model_lasso_rmse <- glmnet(as.matrix(x_train), y_train, alpha = 1,
+                               lambda = lasso_tuned_lambda_rmse)
+    
+    model_lasso_mae <- glmnet(as.matrix(x_train), y_train, alpha = 1,
+                              lambda = lasso_tuned_lambda_mae)
+    
+    lasso_list_rmse[[i]] <- model_lasso_rmse
+    
+    lasso_list_mae[[i]] <- model_lasso_mae
+  }
+  
+  prediction_matrix_rmse <- matrix(, nrow = nrow(test_data), ncol = 0)
+  
+  prediction_matrix_mae <- matrix(, nrow = nrow(test_data), ncol = 0)
+  
+  for (x in imputed_test_data) {
+    x_variables <- x[,-9]
+    for (y in seq_along(lasso_list_rmse)){
+      los_pred_rmse <- predict(lasso_list_rmse[[y]], as.matrix(x_variables))#, #type = "response")
+      prediction_matrix_rmse <- cbind(prediction_matrix_rmse, los_pred_rmse)
+    }
+    #}
+    
+    #for (x in imputed_test_data) {
+    #x_variables <- x[,-9]
+    for (y in seq_along(lasso_list_mae)){
+      los_pred_mae <- predict(lasso_list_mae[[y]], as.matrix(x_variables))#, #type = "response")
+      prediction_matrix_mae <- cbind(prediction_matrix_mae, los_pred_mae)
     }
     
-    prediction_matrix <- matrix(, nrow = nrow(test_data), ncol = 0)
+    predictions_rmse <- rowMeans(prediction_matrix_rmse)
     
-    for (x in imputed_test_data) {
-      x_variables <- x[,-9]
-      for (y in seq_along(lasso_list)){
-        los_pred <- predict(lasso_list[[y]], as.matrix(x_variables))#, #type = "response")
-        prediction_matrix <- cbind(prediction_matrix, los_pred)
-      }
-    }
+    predictions_mae <- rowMeans(prediction_matrix_mae)
     
-    predictions <- rowMeans(prediction_matrix)
-    
-    predictions_df <- as.data.frame(predictions) %>%
-      rename(total_los = predictions) %>%
+    predictions_df_rmse <- as.data.frame(predictions_rmse) %>%
+      rename(total_los = predictions_rmse) %>%
       mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
     
-    lasso_rmse <- rmse(preds = predictions_df$total_los,
-                    imputed_test_data[[1]]$total_los)
+    predictions_df_mae <- as.data.frame(predictions_mae) %>%
+      rename(total_los = predictions_mae) %>%
+      mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+    
+    lasso_rmse <- mltools::rmse(preds = predictions_df_rmse$total_los,
+                                imputed_test_data[[1]]$total_los)
+    
+    lasso_mae <- Metrics::mae(actual = imputed_test_data[[1]]$total_los,
+                              predicted = predictions_df_mae$total_los)
     
     lasso_rmse_list <- append(lasso_rmse_list, lasso_rmse)
+    
+    lasso_mae_list <- append(lasso_mae_list, lasso_mae)
   }
   
   lasso_rmse_df <- as.data.frame(lasso_rmse_list)
   
-  colnames(lasso_rmse_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
-                               "1", "1.5", "2", "2.5", "3", "3.5")
+  lasso_mae_df <- as.data.frame(lasso_mae_list)
+  
   
   #Ridge
-  ridge_list <- list()
+  ridge_list_rmse <- list()
+  
+  ridge_list_mae <- list()
     
   ridge_rmse_list <- list()
+  
+  ridge_mae_list <- list()
     
-  for(lam in lambdagrid ) {
-    for (i in seq_along(imputed_datasets)){
-      y_train <- imputed_datasets[[i]]$total_los
-      x_train <- imputed_datasets[[i]][, -9]
+  #for(lam in lambdagrid ) {
+    #for (i in seq_along(imputed_datasets)){
+     # y_train <- imputed_datasets[[i]]$total_los
+    #  x_train <- imputed_datasets[[i]][, -9]
         
-      model_ridge <- glmnet(x_train, y_train, alpha = 0, lambda = lam)
+     # model_ridge <- glmnet(x_train, y_train, alpha = 0, lambda = lam)
         
-      ridge_list[[i]] <- model_ridge
-    }
+    #  ridge_list[[i]] <- model_ridge
+    #}
       
-    prediction_matrix <- matrix(, nrow = nrow(test_data), ncol = 0)
+    #prediction_matrix <- matrix(, nrow = nrow(test_data), ncol = 0)
       
-    for (x in imputed_test_data) {
-      x_variables <- x[,-9]
-      for (y in seq_along(ridge_list)){
-        los_pred <- predict(ridge_list[[y]], as.matrix(x_variables))#, #type = "response")
-        prediction_matrix <- cbind(prediction_matrix, los_pred)
-      }
-    }
+    #for (x in imputed_test_data) {
+     # x_variables <- x[,-9]
+    #  for (y in seq_along(ridge_list)){
+       # los_pred <- predict(ridge_list[[y]], as.matrix(x_variables))#, #type = "response")
+      #  prediction_matrix <- cbind(prediction_matrix, los_pred)
+     # }
+    #}
       
-    predictions <- rowMeans(prediction_matrix)
+    #predictions <- rowMeans(prediction_matrix)
       
-    predictions_df <- as.data.frame(predictions) %>%
-      rename(total_los = predictions) %>%
-      mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+    #predictions_df <- as.data.frame(predictions) %>%
+      #rename(total_los = predictions) %>%
+     # mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
       
-    ridge_rmse <- rmse(preds = predictions_df$total_los,
-                         imputed_test_data[[1]]$total_los)
+    #ridge_rmse <- mltools::rmse(preds = predictions_df$total_los,
+     #                    imputed_test_data[[1]]$total_los)
+    
+    #ridge_mae <- mae(actual = imputed_test_data[[1]]$total_los,
+     #                predicted = predictions_df$total_los)
       
-    ridge_rmse_list <- append(ridge_rmse_list, ridge_rmse)
+    #ridge_rmse_list <- append(ridge_rmse_list, ridge_rmse)
+    
+   # ridge_mae_list <- append(ridge_mae_list, ridge_mae)
+  #}
+    
+  #ridge_rmse_df <- as.data.frame(ridge_rmse_list)
+  
+  #ridge_mae_df <- as.data.frame(ridge_mae_list)
+    
+  #colnames(ridge_rmse_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
+  #                             "1", "1.5", "2", "2.5", "3", "3.5")
+  
+  #colnames(ridge_mae_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
+                               #"1", "1.5", "2", "2.5", "3", "3.5")
+  
+  
+  opt_lam_ridge_rmse <- list()
+  
+  opt_lam_ridge_mae <-list()
+  
+  rmse_cv_list <- list()
+  
+  mae_cv_list <- list()
+  
+  for (i in seq_along(imputed_datasets)){
+    y_train <- imputed_datasets[[i]]$total_los
+    x_train <- imputed_datasets[[i]][, -9]
+    
+    cv_ridge <- cv.glmnet(as.matrix(x_train), y_train, alpha = 0, nfolds = 5)
+    
+    cv_ridge_mae <- cv.glmnet(as.matrix(x_train), y_train, alpha = 0,
+                              nfolds = 5, type.measure = "mae")
+    
+    #model_lasso <- glmnet(x_train, y_train, alpha = 1, lambda = lam)
+    
+    opt_lam <- cv_ridge$lambda.min
+    
+    rmse_cv <- sqrt(cv_ridge$cvm)
+    
+    opt_lam_ridge_rmse <- append(opt_lam_ridge_rmse, opt_lam)
+    
+    rmse_cv_list <- append(rmse_cv_list, rmse_cv)
+    
+    opt_lam_mae <- cv_ridge_mae$lambda.min
+    
+    mae_cv <- cv_ridge_mae$cvm
+    
+    opt_lam_ridge_mae <- append(opt_lam_ridge_mae, opt_lam_mae)
+    
+    mae_cv_list <- append(mae_cv_list, mae_cv)
+    
+    #model_ridge_rmse <- glmnet(as.matrix(x_train), y_train, alpha = 0,
+                          #lambda = opt_lam)
+    
+    #model_ridge_mae <- glmnet(as.matrix(x_train), y_train, alpha = 0,
+                               #lambda = opt_lam_mae)
+    
+    #ridge_list_rmse[[i]] <- model_ridge_rmse
+    
+    #ridge_list_mae[[i]] <- model_ridge_mae
   }
+  
+  ridge_lam_rmse_df <- data.frame(
+    lambda = unlist(opt_lam_ridge),
+    rmse = unlist(rmse_cv_list)
+  )
+  
+  opt_ind_ridge_rmse <- which.min(ridge_lam_rmse_df$rmse)
+  ridge_tuned_lambda_rmse <- ridge_lam_rmse_df$lambda[opt_ind_ridge_rmse]
+  
+  lam_ridge_rmse <- append(lam_ridge_rmse, ridge_tuned_lambda_rmse)
+  
+  ridge_lam_mae_df <- data.frame(
+    lambda = unlist(opt_lam_ridge),
+    mae = unlist(mae_cv_list)
+  )
+  
+  opt_ind_ridge_mae <- which.min(ridge_lam_mae_df$mae)
+  ridge_tuned_lambda_mae <- ridge_lam_mae_df$lambda[opt_ind_ridge_mae]
+  
+  lam_ridge_mae <- append(lam_ridge_mae, ridge_tuned_lambda_mae)
+  
+  for (i in seq_along(imputed_datasets)){
+    y_train <- imputed_datasets[[i]]$total_los
+    x_train <- imputed_datasets[[i]][, -9]
     
+    model_ridge_rmse <- glmnet(as.matrix(x_train), y_train, alpha = 0,
+                               lambda = ridge_tuned_lambda_rmse)
+    
+    model_ridge_mae <- glmnet(as.matrix(x_train), y_train, alpha = 0,
+                              lambda = ridge_tuned_lambda_mae)
+    
+    ridge_list_rmse[[i]] <- model_ridge_rmse
+    
+    ridge_list_mae[[i]] <- model_ridge_mae
+  }
+  
+  prediction_matrix_rmse <- matrix(, nrow = nrow(test_data), ncol = 0)
+  
+  prediction_matrix_mae <- matrix(, nrow = nrow(test_data), ncol = 0)
+  
+  for (x in imputed_test_data) {
+    x_variables <- x[,-9]
+    for (y in seq_along(ridge_list_rmse)){
+      los_pred_rmse <- predict(ridge_list_rmse[[y]], as.matrix(x_variables))#, #type = "response")
+      prediction_matrix_rmse <- cbind(prediction_matrix_rmse, los_pred_rmse)
+    }
+    #}
+    
+    #for (x in imputed_test_data) {
+      #x_variables <- x[,-9]
+    for (y in seq_along(ridge_list_mae)){
+      los_pred_mae <- predict(ridge_list_mae[[y]], as.matrix(x_variables))#, #type = "response")
+      prediction_matrix_mae <- cbind(prediction_matrix_mae, los_pred_mae)
+    }
+    
+    predictions_rmse <- rowMeans(prediction_matrix_rmse)
+    
+    predictions_mae <- rowMeans(prediction_matrix_mae)
+    
+    predictions_df_rmse <- as.data.frame(predictions_rmse) %>%
+      rename(total_los = predictions_rmse) %>%
+      mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+    
+    predictions_df_mae <- as.data.frame(predictions_mae) %>%
+      rename(total_los = predictions_mae) %>%
+      mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+    
+    ridge_rmse <- mltools::rmse(preds = predictions_df_rmse$total_los,
+                                imputed_test_data[[1]]$total_los)
+    
+    ridge_mae <- Metrics::mae(actual = imputed_test_data[[1]]$total_los,
+                              predicted = predictions_df_mae$total_los)
+    
+    ridge_rmse_list <- append(ridge_rmse_list, ridge_rmse)
+    
+    ridge_mae_list <- append(ridge_mae_list, ridge_mae)
+  }
+  
   ridge_rmse_df <- as.data.frame(ridge_rmse_list)
-    
-  colnames(ridge_rmse_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
-                               "1", "1.5", "2", "2.5", "3", "3.5")  
+  
+  ridge_mae_df <- as.data.frame(ridge_mae_list)
     
   #model_ridge <- glmnet(x_train, y_train, alpha = 0)
   
@@ -823,7 +1175,9 @@ results <- foreach(x = seq_along(folds)) %dopar% {
   
   rfm_rmse_list <- list()
   
-  for (try in seq_along(mtry_range)) {
+  rfm_mae_list <- list()
+  
+  #for (try in seq_along(mtry_range)) {
     for (i in seq_along(imputed_datasets)){
       
       #y_train <- imputed_datasets[[i]]$total_los
@@ -852,15 +1206,155 @@ results <- foreach(x = seq_along(folds)) %dopar% {
       rename(total_los = predictions) %>%
       mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
     
-    rfm_rmse <- rmse(preds = predictions_df$total_los,
+    rfm_rmse <- mltools::rmse(preds = predictions_df$total_los,
                        imputed_test_data[[1]]$total_los)
     
+    rfm_mae <- Metrics::mae(actual = imputed_test_data[[1]]$total_los,
+                   predicted = predictions_df$total_los)
+    
     rfm_rmse_list <- append(rfm_rmse_list, rfm_rmse)
+    
+    rfm_mae_list <- append(rfm_mae_list, rfm_mae)
   }
   
   rfm_rmse_df <- as.data.frame(rfm_rmse_list)
   
+  rfm_mae_df <- as.data.frame(rfm_mae_list)
+  
   colnames(rfm_rmse_df) <- c("2", "3", "4", "5", "6", "10")
+  
+  colnames(rfm_mae_df) <- c("2", "3", "4", "5", "6", "10")
+  
+  
+  cv_method <- trainControl(method = "cv", number = 5)
+  
+  #rmse
+  for (i in seq_along(imputed_datasets)){
+    model_rmse <- caret::train(total_los ~ .,
+                          method = "rf",
+                          trControl = cv_method,
+                          data = imputed_datasets[[i]],
+                          tuneGrid = expand.grid(mtry_range),
+                          metric = "RMSE")
+    
+    model_mae <- caret::train(total_los ~ .,
+                               method = "rf",
+                               trControl = cv_method,
+                               data = imputed_datasets[[i]],
+                               tuneGrid = expand.grid(mtry_range),
+                               metric = "MAE")
+    
+    opt_mtry_rmse <- model_rmse$finalModel$mtry
+    
+    opt_rmse <- model_rmse$results$RMSE[model_rmse$results$mtry 
+                                        == model_rmse$bestTune$mtry]
+    
+    opt_mtry_mae <- model_mae$finalModel$mtry
+    
+    opt_mae <- model_mae$results$MAE[model_mae$results$mtry 
+                                        == model_mae$bestTune$mtry]
+    
+    
+    opt_mtry_list_rmse <- append(opt_mtry_list_rmse, opt_mtry_rmse)
+    
+    opt_mtry_list_mae <- append(opt_mtry_list_mae, opt_mtry_mae)
+    
+    opt_rmse_list <- append(opt_rmse_list, opt_rmse)
+    
+    opt_mae_list <- append(opt_mae_list, opt_mae)
+  }
+  
+  rfm_mtry_rmse_df <- data.frame(
+    mtry = unlist(opt_mtry_list_rmse),
+    rmse = unlist(opt_rmse_list)
+  )
+  
+  opt_ind_rfm_rmse <- which.min(rfm_mtry_rmse_df$rmse)
+  rfm_tuned_mtry_rmse <- rfm_mtry_rmse_df$mtry[opt_ind_rfm_rmse]
+  
+  mtry_rfm_rmse <- append(mtry_rfm_rmse, rfm_tuned_mtry_rmse)
+  
+  rfm_mtry_mae_df <- data.frame(
+    mtry = unlist(opt_mtry_list_mae),
+    mae = unlist(opt_mae_list)
+  )
+  
+  opt_ind_rfm_mae <- which.min(rfm_mtry_mae_df$mae)
+  rfm_tuned_mtry_mae <- rfm_mtry_mae_df$lambda[opt_ind_mtry_mae]
+  
+  mtry_rfm_mae <- append(mtry_rfm_mae, rfm_tuned_mtry_mae)
+  
+  for (i in seq_along(imputed_datasets)){
+    
+    #y_train <- imputed_datasets[[i]]$total_los
+    #x_train <- imputed_datasets[[i]][, -9]
+    
+    rfm_rmse <- randomForest( total_los ~ .,
+                         mtry = rfm_tuned_mtry_rmse,
+                         ntree = 200,
+                         data = imputed_datasets[[i]])
+    
+    rfm_list_rmse[[i]] <- rfm_rmse
+    
+    rfm_mae <- randomForest( total_los ~ .,
+                              mtry = rfm_tuned_mtry_mae,
+                              ntree = 200,
+                              data = imputed_datasets[[i]])
+    
+    rfm_list_mae[[i]] <- rfm_mae
+  }
+  
+  prediction_matrix_rmse <- matrix(, nrow = nrow(test_data), ncol = 0)
+  
+  for (x in imputed_test_data) {
+    for (y in seq_along(rfm_list_rmse)){
+      los_pred_rmse <- predict(rfm_list_rmse[[y]], as.matrix(x))
+      prediction_matrix_rmse <- cbind(prediction_matrix_rmse, los_pred_rmse)
+    }
+  }
+  
+  predictions_rmse <- rowMeans(prediction_matrix_rmse)
+  
+  predictions_rmse_df <- as.data.frame(predictions_rmse) %>%
+    rename(total_los = predictions_rmse) %>%
+    mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+  
+  prediction_matrix_mae <- matrix(, nrow = nrow(test_data), ncol = 0)
+  
+  for (x in imputed_test_data) {
+    for (y in seq_along(rfm_list_mae)){
+      los_pred_mae <- predict(rfm_list_mae[[y]], as.matrix(x))
+      prediction_matrix_mae <- cbind(prediction_matrix_mae, los_pred_mae)
+    }
+  }
+
+  predictions_mae <- rowMeans(prediction_matrix_mae)
+
+  predictions_mae_df <- as.data.frame(predictions_mae) %>%
+    rename(total_los = predictions_mae) %>%
+    mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+  
+  rfm_rmse <- mltools::rmse(preds = predictions_rmse_df$total_los,
+                            imputed_test_data[[1]]$total_los)
+  
+  rfm_mae <- Metrics::mae(actual = imputed_test_data[[1]]$total_los,
+                          predicted = predictions_mae_df$total_los)
+  
+  rfm_rmse_list <- append(rfm_rmse_list, rfm_rmse)
+  
+  rfm_mae_list <- append(rfm_mae_list, rfm_mae)
+
+  rfm_rmse_df <- as.data.frame(rfm_rmse_list)
+  
+  rfm_mae_df <- as.data.frame(rfm_mae_list)
+
+#colnames(rfm_rmse_df) <- c("2", "3", "4", "5", "6", "10")
+
+#colnames(rfm_mae_df) <- c("2", "3", "4", "5", "6", "10")
+  
+  
+  
+  
   
  # rm_2 <- tuneRF(
       #  x = x_train,
@@ -893,24 +1387,47 @@ results <- foreach(x = seq_along(folds)) %dopar% {
    #                        objective = "reg:squarederror",
    #                        nrounds = 100)
   
-  list(lm = lm_rmse,
-       lasso = lasso_rmse_df,
-       ridge = ridge_rmse_df,
-       random_forest = rfm_rmse_df
+  list(lm_rmse = lm_rmse,
+       lm_mae = lm_mae,
+       lasso_rmse = lasso_rmse_df,
+       lasso_mae = lasso_mae_df,
+       ridge_rmse = ridge_rmse_df,
+       ridge_mae = ridge_mae_df,
+       random_forest_rmse = rfm_rmse_df,
+       random_forest_mae = rfm_mae_df,
+       imputed_datasets = imputed_datasets,
+       imputed_test_data = imputed_test_data
     #   xgboost_single = single_tree,
     #   xgboost = xgboost_multi
   )
   
-}
+#}
 
 stopCluster(clust)
 
+
+#ridge_lam_rmse_df <- data.frame(
+ # lambda = unlist(opt_lam_ridge),
+ # rmse = unlist(rmse_cv_list)
+  #)
+
+#opt_ind_ridge_rmse <- which.min(ridge_lam_rmse_df$rmse)
+#ridge_tuned_lambda_rmse <- ridge_lam_rmse_df[opt_ind_ridge_rmse]
+
+#ridge_lam_mae_df <- data.frame(
+#  lambda = unlist(opt_lam_ridge),
+#  mae = unlist(mae_cv_list)
+#)
+
+#opt_ind_ridge_mae <- which.min(ridge_lam_mae_df$mae)
+#ridge_tuned_lambda_mae <- ridge_lam_mae_df[opt_ind_ridge_mae]
+
 lasso_rmse <- bind_rows(
-  results[[1]]$lasso,
-  results[[2]]$lasso,
-  results[[3]]$lasso,
-  results[[4]]$lasso,
-  results[[5]]$lasso) %>%
+  results[[1]]$lasso_rmse,
+  results[[2]]$lasso_rmse,
+  results[[3]]$lasso_rmse,
+  results[[4]]$lasso_rmse,
+  results[[5]]$lasso_rmse) %>%
   t() %>%
   as.data.frame()#%>%
   #t() %>%
@@ -921,36 +1438,87 @@ lasso_rmse <- bind_rows(
 
 lasso_rmse$rmse_mean <- rowMeans(lasso_rmse, na.rm = TRUE)
 
-lasso_rmse$lambda <- row.names(lasso_rmse)
+lasso_rmse$lambda <- lam_lasso_rmse
 
 colnames(lasso_rmse) <- c("1", "2", "3", "4", "5", "rmse_mean", "lambda")
 
 rownames(lasso_rmse) <- c(1:nrow(lasso_rmse))
-  
-ridge_rmse <- bind_rows(
-  results[[1]]$ridge,
-  results[[2]]$ridge,
-  results[[3]]$ridge,
-  results[[4]]$ridge,
-  results[[5]]$ridge) %>%
+
+final_id_lasso_rmse <- which.min(lasso_rmse$rmse_mean)
+
+final_lambda_lasso_rmse <- lasso_rmse$lambda[final_id_lasso_rmse]
+
+lasso_mae <- bind_rows(
+  results[[1]]$lasso_mae,
+  results[[2]]$lasso_mae,
+  results[[3]]$lasso_mae,
+  results[[4]]$lasso_mae,
+  results[[5]]$lasso_mae) %>%
   t() %>%
   as.data.frame()
-  #mutate(rmse_mean <- rowMeans(across(everything())))
+
+lasso_mae$mae_mean <- rowMeans(lasso_mae, na.rm = TRUE)
+
+lasso_mae$lambda <- lam_lasso_mae
+
+colnames(lasso_mae) <- c("1", "2", "3", "4", "5", "mae_mean", "lambda")
+
+rownames(lasso_mae) <- c(1:nrow(lasso_mae))
+
+final_id_lasso_mae <- which.min(lasso_mae$mae_mean)
+
+final_lambda_lasso_mae <- lasso_mae$lambda[final_id_lasso_mae]
+
+ridge_rmse <- bind_rows(
+  results[[1]]$ridge_rmse,
+  results[[2]]$ridge_rmse,
+  results[[3]]$ridge_rmse,
+  results[[4]]$ridge_rmse,
+  results[[5]]$ridge_rmse) %>%
+  t() %>%
+  as.data.frame()
 
 ridge_rmse$rmse_mean <- rowMeans(ridge_rmse, na.rm = TRUE)
 
-ridge_rmse$lambda <- row.names(ridge_rmse)
+ridge_rmse$lambda <- lam_ridge_rmse
 
 colnames(ridge_rmse) <- c("1", "2", "3", "4", "5", "rmse_mean", "lambda")
 
 rownames(ridge_rmse) <- c(1:nrow(ridge_rmse))
 
+final_id_ridge_rmse <- which.min(ridge_rmse$rmse_mean)
+
+final_lambda_ridge_rmse <- ridge_rmse$lambda[final_id_ridge_rmse]
+
+ridge_mae <- bind_rows(
+  results[[1]]$ridge_mae,
+  results[[2]]$ridge_mae,
+  results[[3]]$ridge_mae,
+  results[[4]]$ridge_mae,
+  results[[5]]$ridge_mae) %>%
+  t() %>%
+  as.data.frame()
+  #mutate(rmse_mean <- rowMeans(across(everything())))
+
+ridge_mae$mae_mean <- rowMeans(ridge_mae, na.rm = TRUE)
+
+ridge_mae$lambda <- lam_ridge_mae
+
+colnames(ridge_mae) <- c("1", "2", "3", "4", "5", "mae_mean", "lambda")
+
+rownames(ridge_mae) <- c(1:nrow(ridge_mae))
+
+final_id_ridge_mae <- which.min(ridge_mae$mae_mean)
+
+final_lambda_ridge_mae <- ridge_mae$lambda[final_id_ridge_mae]
+
+
 rfm_rmse <- bind_rows(
-  results[[1]]$random_forest,
-  results[[2]]$random_forest, 
-  results[[3]]$random_forest,
-  results[[4]]$random_forest, 
-  results[[5]]$random_forest) %>%
+  results[[1]]$random_forest_rmse,
+  results[[2]]$random_forest_rmse, 
+  results[[3]]$random_forest_rmse,
+  results[[4]]$random_forest_rmse, 
+  results[[5]]$random_forest_rmse) %>%
   t() %>%
   as.data.frame()
   #mutate(rmse_mean <- rowMeans(across(everything())))
@@ -963,22 +1531,168 @@ colnames(rfm_rmse) <- c("1", "2", "3", "4", "5", "rmse_mean", "mtry")
 
 rownames(rfm_rmse) <- c(1:nrow(rfm_rmse))
 
-lm_rmse_mean <- (results[[1]]$lm + 
-                   results[[2]]$lm +
-                   results[[3]]$lm + 
-                   results[[4]]$lm + 
-                   results[[5]]$lm)/5
+rfm_mae <- bind_rows(
+  results[[1]]$random_forest_mae,
+  results[[2]]$random_forest_mae, 
+  results[[3]]$random_forest_mae,
+  results[[4]]$random_forest_mae, 
+  results[[5]]$random_forest_mae) %>%
+  t() %>%
+  as.data.frame()
+#mutate(rmse_mean <- rowMeans(across(everything())))
+
+rfm_mae$mae_mean <- rowMeans(rfm_mae, na.rm = TRUE)
+
+rfm_mae$mtry <- 
+
+colnames(rfm_mae) <- c("1", "2", "3", "4", "5", "mae_mean", "mtry")
+
+rownames(rfm_mae) <- c(1:nrow(rfm_mae))
+
+lm_rmse_mean <- (results[[1]]$lm_rmse + 
+                   results[[2]]$lm_rmse +
+                   results[[3]]$lm_rmse + 
+                   results[[4]]$lm_rmse + 
+                   results[[5]]$lm_rmse)/5
+
+lm_mae_mean <- (results[[1]]$lm_mae + 
+                   results[[2]]$lm_mae +
+                   results[[3]]$lm_mae + 
+                   results[[4]]$lm_mae + 
+                   results[[5]]$lm_mae)/5
 
 #xgb.plot.tree(model = results[[1]]$xgboost)
 
+#for(lam in lambdagrid ) {
+  
+
+#colnames(lasso_rmse_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
+                            # "1", "1.5", "2", "2.5", "3", "3.5")
+
+#colnames(lasso_mae_df) <- c("0.001", "0.005", "0.01", "0.05", "0.1", "0.5",
+                           # "1", "1.5", "2", "2.5", "3", "3.5")
+
+#cv_method <- trainControl(method = "cv", number = 5)
+
+#model <- train(total_los, )
+
+#inside for each
+
+cv_method <- trainControl(method = "cv", number = 5)
+
+#rmse
+for (i in seq_along(imputed_datasets)){
+  model <- caret::train(total_los ~ .,
+                      method = "rf",
+                      trControl = cv_method,
+                      data = imputed_datasets[[i]],
+                      #tuneGrid = expand.grid(mtry_range),
+                      metric = "RMSE")
+  
+  opt_mtry <- model$finalModel$mtry
+  
+  opt_mtry_list_rmse <- append(opt_mtry_list, opt_mtry)
+}
+
+opt_mtry_df_rmse <- as.data.frame(opt_mtry_list_rmse)
+
+colnames(opt_mtry_df_rmse) <- c("mtry")
+
+mode_mtry_rmse <- mode(opt_mtry_df$mtry)
+
+#Find the mode
+
+#make data frame of optimal mtry values 
+
+#predict(model$finalModel, as.matrix(imputed_datasets[[i]]))
+
+#metrics using the test datasets
+
+#outside for each
+
+#will need to make the row a column and rename the column
+
+save the mode within the foreach loop 
+
+make list of the mtry modes
+
+mtry_mode_list <- list(results[[1]]$mode_mtry,
+                       results[[2]]$mode_mtry,
+                       results[[3]]$mode_mtry,
+                       results[[4]]$mode_mtry,
+                       results[[5]]$mode_mtry)
+
+opt_mtry_mode <- mode(mtry_mode_list)
+
+#mode_mtry from optimal mtry values data frame
+
+imputed_datasets and imputed_test_data lists need to made
+
+imputed_datasets_list <- list(results[[1]]$imputed_datasets,
+                              results[[2]]$imputed_datasets,
+                              results[[3]]$imputed_datasets,
+                              results[[4]]$imputed_datasets,
+                              results[[5]]$imputed_datasets)
+
+imputed_test_data_list <- list(results[[1]]$imputed_test_data,
+                              results[[2]]$imputed_test_data,
+                              results[[3]]$imputed_test_data,
+                              results[[4]]$imputed_test_data,
+                              results[[5]]$imputed_test_data)
+
+for(i in seq_along(imputed_datasets_list)) {
+rfm <- randomForest( total_los ~ .,
+                     mtry = opt_mtry_mode,
+                     ntree = 500,
+                     data = imputed_datasets_list[[i]])
+
+
+rfm_list[[i]] <- rfm
+
+}
+
+prediction_matrix <- matrix(, nrow = nrow(test_data), ncol = 0)
+
+for (x in imputed_test_data_list) {
+  for (y in seq_along(rfm_list)){
+    los_pred <- predict(rfm_list[[y]], as.matrix(x))
+    prediction_matrix <- cbind(prediction_matrix, los_pred)
+  }
+}
+
+predictions <- rowMeans(prediction_matrix)
+
+predictions_df <- as.data.frame(predictions) %>%
+  rename(total_los = predictions) %>%
+  mutate(total_los = ifelse(total_los <= 0.25, 0.25, total_los))
+
+rfm_rmse <- mltools::rmse(preds = predictions_df$total_los,
+                          imputed_test_data[[1]]$total_los)
+
+rfm_mae <- Metrics::mae(actual = imputed_test_data[[1]]$total_los,
+                        predicted = predictions_df$total_los)
+
+rfm_rmse_list <- append(rfm_rmse_list, rfm_rmse)
+
+rfm_mae_list <- append(rfm_mae_list, rfm_mae)
+
+
+rfm_rmse_df <- as.data.frame(rfm_rmse_list)
+
+rfm_mae_df <- as.data.frame(rfm_mae_list)
+
+many to many predictions and evaluations then averages of performance metrics
+
+
+
+save the imputed datasets and test_sets from each fold to use i/n  the rfm final loop
 
 
 
 
+#(lm_mae_mean/mean(imputed_test_data[[1]]$total_los))*100
 
-
-
-
+#(lm_mae_mean/median(imputed_test_data[[1]]$total_los))*100
 
 
 
