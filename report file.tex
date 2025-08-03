@@ -28,7 +28,7 @@ sorting=ynt
 \setmainfont{Arial}
 \newfontfamily\seriffont{Times New Roman}
 \begin{document}
-\title{Machine Learning-Based Prediction of Intensive Care Length of Stay for Lung Cancer Patients Post-Immunotherapy}
+\title{Machine Learning-Based Prediction of Intensive Care Length of Stay for Lung Cancer Patients}
 \author{Louis Bolduc}
 \date{September 2024}
 
@@ -52,25 +52,27 @@ The main aim of this project is to build accurate and efficient machine learning
 
 The main objectives are the following:
 \begin{itemize}
-    \item Objective 1 - Take the data from the MIMIC and immunology datasets and combine them into one, then create new variables and ensure that the data is appropriately scaled.
-    \item Objective 2 - Build the machine learning models, identifying the most relevant variables to be used to limit model complexity.
-    \item Objective 3 - Evaluate the algorithms to find the model with the best fit for the data and interpret the result.
+    \item Aim 1 - Take the data from the MIMIC and immunology datasets and combine them into one, then create new variables and ensure that the data is appropriately scaled.
+    \item Aim 2 - Build the machine learning models, identifying the most relevant variables to be used to limit model complexity.
+    \item Aim 3 - Evaluate the algorithms to find the model with the best fit for the data and interpret the result.
 \end{itemize}
 
-\subsection{Lung Cancer and Immunotherapy Background}
+\subsection{Lung Cancer Background}
 Cancer is a disease that involves the uncontrollable multiplication of malignant cells, in some cases forming tumours in organs or tissues. In the UK, and many other countries around the world, cancer has become the leading cause of death, and in the UK specifically it has been reported that around 1 in 2 people will be diagnosed with cancer at some point in their lives. This statistic indicates that the volume of patients requiring ICU treatment will be significantly large and therefore the optimisation of length of stay analysis is key to resource management and patient care planning.
 
-Malignant cancer cells in the body often escape detection, limiting the ability of the immune system to prevent their spread and mitigate the resulting damage. Immunotherapy is a treatment that boosts the immune response and prevents cancer cells from suppressing it, enabling the immune system to detect and destroy cells more effectively. For early stage lung cancer, stages I-III, immunotherapy is still not considered the most effective form of treatment in most cases; however, a significant proportion of patients in the latter stages of the disease will receive some form of this treatment.
+%Malignant cancer cells in the body often escape detection, limiting the ability of the immune system to prevent their spread and mitigate the resulting damage. Immunotherapy is a treatment that boosts the immune response and prevents cancer cells from suppressing it, enabling the immune system to detect and destroy cells more effectively. For early stage lung cancer, stages I-III, immunotherapy is still not considered the most effective form of treatment in most cases; however, a significant proportion of patients in the latter stages of the disease will receive some form of this treatment.
+
+\subsection{Length of Stay Prediction}
 
 \subsection{The MIMIC Database}
 MIMIC is a large relational database that consists of deidentified data collated from thousands of admissions to the intensive care unit of the Beth Israel Deaconess Medical Centre in Boston, Massachusetts. The acronym MIMIC has stood for "Multiparameter Intelligent Monitoring in Intensive Care" and more recently "Medical Information Mart for Intensive Care". Some key features of this database are that it is the only freely accessible critical care database of its kind and contains detailed information on patients spanning more than a decade. The most recent version of the MIMIC database is MIMIC-IV which includes, most importantly, data all the way up to the year 2019 as opposed to 2012 for MIMIC-III. Using the updated version should allow for greater relevance and accuracy of the prediction model. The value of MIMIC in this study lies in the comprehensive real-world data it contains, which enables the model to train more accurately compared to synthetic data, allowing it to fit better to unseen data.
 
 Data can be accessed after completing a short ethics course set up by the CITI programme website.[cite{MIMICethics}]
 
-\subsection{The Curenetics Dataset}
-Curenetics is a medical technology organisation that focusses on building sophisticated predictive models to improve decision making to create treatment plans for cancer patients.
+%\subsection{The Curenetics Dataset}
+%Curenetics is a medical technology organisation that focusses on building sophisticated predictive models to improve decision making to create treatment plans for cancer patients.
 
-The immunotherapy dataset used in this project was designed in-house at Curenetics, in collaboration with KCL medical students, using data extracted from University of Kent medical reports. Curenetics have full ownership of this dataset.
+%The immunotherapy dataset used in this project was designed in-house at Curenetics, in collaboration with KCL medical students, using data extracted from University of Kent medical reports. Curenetics have full ownership of this dataset.
 
 \subsection{GitHub Repository}
 A GitHub repository has been set up to back up files so that lost work can be retrieved in the event of unexpected technical issues. This will be updated throughout the course of the project.[cite github page]
@@ -84,6 +86,16 @@ To create the schema, this being the frame housing the tables that constitute th
 
 After running the script and having the empty database setup, the data files will need to be prepared ready for export. Some data files were quite large, too large for pgAdmin to export in one process. Therefore the larger data files were split into smaller parts with the use of the Windows powershell command line.[cite command code] Once all the larger data files had been split they were exported into their respective tables in the schema.
 
+\subsection{Variable Selection}
+Variables to use in the prediction models must be determined before any data extraction from the MIMIC-IV database can occur. The importance of choosing relevant variables is significant as this has a strong impact on the performance of the model. For example, a variable such as the amount of languages the patient speaks would most probably be fairly useless in predicting lung cancer length of stay in the ICU. Therefore some prior knowledge on the key variables that affect lung cancer is needed, to obtain this it would be useful to draw on medical knowledge. In the absence of first hand medical knowledge some research on the variables used in previous study must be examined. A study with the same aim of prediction for the length of stay for lung cancer patients using the MIMIC-III database is found [lung cancer los hospital].  It is not clear that any other study focuses primarily on prediction of length of stay for lung cancer patients, but the variables included here would be those that are explicitly useful for this prediction. They mention the methods of obtaining the variables they have included is a process of first considering clinical significance and then using a process of recursive feature elimination as a way of removing the less useful variables. The variables that remained are as listed: age, temperature, platelets, admission (specifically emergency), glucose, chloride, potassium, pulse oximetry, PTT, anion gap, respiratory rate, haemoglobin, troponin, calcium gluconate, haematocrit, tidal volume, diastolic, ondansetron, INR, sodium. Of these pulse oximetry, anion gap, respiratory rate, tidal volume and diastolic were not collected due to lack of data. The variables sex, ethnicity and health insurance were also included with the reason that they may be clinically significant. 
+
+Whether a patient leaves the ICU through discharge or through death is important to consider as a prediction model that doesn't take this into account may predict those who end up dying having a much longer length of stay than they do based on the data that indicates that they may have poor health.
+
+Age is treated as a continuous variable but is limited by a minimum of 18 to remove non-adults from the study. Temperature, platelets, glucose, chloride, potassium, INR, PTT, haemoglobin, troponin, haematocrit and sodium were also all treated as continuous variables. Sex, death in the ICU, calcium gluconate and ondansetron were binary variables and the rest treated as categorical. Chloride, sodium and potassium were given in units of mEq/L, platelets in k/uL, glucose in mg/dL, haemoglobin in g/dL, haematocrit as a percentage, PTT in seconds, troponin in ng/L, temperature in degrees celsius and age in years. Ethnicity was collected into many levels which will be collated in the data cleaning phase, the same for admission type and health insurance. Sex was split into male and female and as for the calcium gluconate and ondansetron variables they were split into two groups based on whether the patient had taken the drug or not.
+
+The target variable, length of stay, is to be treated as a continous variable measured in hours, meaning regression modelling is more suitable than classification in this context.
+
+
 \subsection{Data Extraction}
 To obtain the cohort from MIMIC for analysis, the ICD-10 [cite{ICD-10codes}] codes corresponding to the diagnosis of lung cancer are needed to identify the patients required for the study. ICD-10 codes represent various patient diagnoses in alphanumeric form, making it easier to record diagnostic data, thereby reducing the likelihood of incorrect entries. The ICD-10 codes that indicate a patient has lung cancer are the C34 codes, identifying a "Malignant neoplasm of bronchus and lung", or the C78.0 codes, identifying a "Secondary malignant neoplasm of lung". A secondary malignant neoplasm is a cancer that develops as a result of a previous cancer. Along with the ICD-10, MIMIC-IV also uses ICD-9 to indentify health conditions. The ICD-9 codes that correspond to the lung cancer cases that are to be extracted are the 162.9 codes. ICD-10 codelist is the updated version of the ICD-9. ICD-10 was introduced in the middle of the data collection process, ICD-10 was introduced in 2015 and MIMIC-IV was collected between 2008 and 2018. This is the reason both set of codes appear. At the time of writing this report the most up to date ICD codelist in use is ICD-11. If MIMIC-V were to be released, it would be expected that ICD-11 codes would appear.
 
@@ -91,7 +103,7 @@ Through pgAdmin 4, SQL queries were written to sift through the database to extr
 
 Similarly, to find data on each variable separate scripts were written each producing datasets extracted from all the data in the database. For example, a SQL query for temperature data would produce a dataset showing every temperature recording in the database. Later, these datasets were to be used to match each admission to their corresponding records, creating a dataset ready for building the machine learning models. Within the SQL scripts there is a set of commands that can reduce the data down to only those patients with ICU stays. Since this study does not concern hospital stays without an ICU admission, these commands were utilised so that each of the datasets included only admissions with ICU stays.
 
-The datasets, now compiled, were saved into csv files and imported into one R file. After adjustment, as outlined in the data cleaning section, the datasets should all be collated into one.
+The datasets, now compiled, were saved into CSV files and imported into one R file. After adjustment, as outlined in the data cleaning section, the datasets should all be collated into one.
 
 \begin{itemize}
     \item SQL queries created to obtain the data for the predictor variables.
@@ -106,14 +118,20 @@ Some data cleaning was executed in the SQL queries with the rest written in the 
 
 In SQL, as mentioned before, the recordings were reduced down to admissions with ICU stays only. This was done to avoid collecting excessive data that would not be of any use going forward. Also, if in the data there are multiple values of one variable for an admission, the value taken the closest to the ICU admission start time was chosen as the value that would appear in the extracted dataset, with the others discarded.
 
-This study treats each ICU stay as a separate record instead of each patient. This is due to the fact that one patient may have multiple ICU stays within an admission, sometimes spaced out by a considerable amount of time. For a length of stay in ICU to be predicted it is out of bounds of the model to predict and take into account how long each space in between the ICU stays is. Therefore, the patient's first length of stay value was defined as the length of stay of the first ICU admission plus the length of stay of any more readmissions into the ICU which occurred within a day of the discharge.
+This study treats each ICU stay as a separate record instead of each patient. This is due to the fact that one patient may have multiple ICU stays within an admission, sometimes spaced out by a considerable amount of time. For a length of stay in ICU to be predicted, taking into account how long each space in between the ICU stays is is out of bounds of what the model aims to predict. Therefore, a patient's length of stay value is defined as the length of stay of the first ICU admission plus the length of stay of any more readmissions into the ICU which occurred within a day of the discharge. An admission occuring outside a day between prior discharge and the start of admission is considered, here, to be a seperate admission in the data, even though these both come from the same patient. This leads to the creation of an extra variable in the data, the number of previous stays in the ICU within this specific hospital admission.
+
+Some of the categorical variables, extracted from the dataset, had many specific levels with some including an insufficiently low amount of individuals. For example the ethnicity variable was split down into many groups, some caputuring only a few individuals as these groups in the wider population are considered minority ethnic. Thankfully to remedy this many of the groups fall under the same ethnic umbrella, white - eastern/european and white - russian although specifically different ethnic groups, individuals from both groups are all considered white. Individuals from ethnic groups that don't fit into a specific category but still need to be categorised can be placed in an other category. The limitations of this are apparent in that the individuals in this group have a significant amount of variance in their ethnic characteristics which is not helpful when using ethnicity as a predictor in a prediction model. Also the aggregation of groups in this way reduces the validity of the true impact of ethnicity on a patient's length of stay. It is important to aggregate the categories in this way for personal security purposes, if a patient is known to be the only patient in a certain category with a lung cancer intensive care stay they would be easily identifiable. In a similar way the extracted admission type groups were also aggregated.
+
+Any missing data in a categorical variable was placed into its own missing data group.
 
 \subsection{Missing Values}
-Missing values in the data act as a roadblock to meaningful analysis. Machine learning models require the input data to be complete for them to work, and their performance is greatly improved when the missingness is remedied so that the resulting study population matches the true population distribution as closely as possible.
+Missing values in the data act as a roadblock to meaningful analysis. Many machine learning models require the input data to be complete for them to work, and their performance is greatly improved when the missingness is remedied so that the resulting study population matches the true population distribution as closely as possible[missing data machine learning].
 
-Dealing with missing data can involve the complete omission of records or imputation. Although omission is the simpler method the resulting model is subject to bias as there may be some reason for certain groups to have missing data in a given variable. This bias is apparent when data is missing at random, MAR, or missing not at random, MNAR, which illudes to the concept that the missingness of the data is related to some observed or unobserved data. Therefore, omission of these data could potentially lead to a misrepresentative study population which in turn leads to the aforementioned bias in the prediction models.
+Dealing with missing data can involve the complete case analysis omission of records or imputation. Although omission is the simpler method, the resulting model is subject to bias as there may be some reason for certain groups to have missing data in a given variable. This bias is apparent when data is missing at random, MAR, or missing not at random, MNAR, which illudes to the concept that the missingness of the data is related to some observed or unobserved data. Therefore, omission of these data could potentially lead to a misrepresentative study population which in turn leads to the aforementioned bias in the prediction models[complete case analysis].
 
-The much more valid approach, to minimise bias, is imputation. Imputation is, in simplistic terms, the filling in of missing data, as the approximation of the true data, based on the statistical characteristics of the observed data. Therefore, providing a full dataset that can be used for analysis. There are a few methods of data imputation. Single imputation is a basic imputation method that imputes the missing data with single estimated values. The simplest way to impute the data is to use a statistic such as the mean or the median for numerical data, or the mode for categorical. For datasets with a more significant amount of missing data this imputation method is less suitable as the imputed distribution may vary too much away from the true distribution. To reduce this instead of imputing all the missing data with the same value, methods such as hot deck or regression give imputations that differ depending on the characteristics of each record. The hot deck method uses data from other variables to determine the values of the imputed data, for example matching the patients on age and gender. Regression models for imputation also use data from other variables but as the predictors. It is worth noting that both these methods require the external variables used to be complete. Despite the improvements from using these methods single imputation is not the optimal method when missingness in the dataset is more prevalent and therefore more advanced methods can be considered.
+A much more valid approach, to minimise bias, is imputation. Imputation is, in simplistic terms, the filling in of missing data, as an approximation, to provide a full dataset for analysis, The imputed data is based on the statistical characteristics of the observed data such as its distribution. For example, if the a variable's distribution is normal, the imputed data should lie somewhere on the same normal distribution with the imputation method mapping the data in this way. 
+
+There are a few methods of data imputation. Single imputation is a basic imputation method that imputes the missing data with single estimated values. One way to singularly impute the data is to use a statistic such as the mean or the median for numerical data, or the mode for categorical[single imputation]. For datasets with a significant amount of missing data this imputation method is less suitable and not recommend for producing robust estimates of the missing data as the variance of the resulting imputed distribution would almost certainly be a poor estimation of the variance of the true distribution. Other methods offer an improvement to this simplistic form of imputation. The hot deck method matches individuals based on characteristics, such as age and sex, with which they share sufficient similarity[hot deck] and uses these groups to impute the missing data in the dataset. The individual with the missing data is labelled the recipient and the individual with the data used to impute the missing value is labelled the donor. How the donor is selected is dictated by the type of hot deck imputation used[hot deck method]. of imputing all the missing data with the same value, methods such as hot deck or regression give imputations that differ depending on the characteristics of each record. Regression models for imputation also use data from other variables by using established regression techniques such as those used to predict the length of stay in this study, for example linear regression and random forest. It is worth noting that both these methods require the external variables used to be complete, where you have datasets with a lot of missing data these methods are less effective. Despite the improvements from using these methods, single imputation is not the optimal method when missingness in the dataset is more prevalent and therefore advanced methods should be considered.
 
 Multiple imputation improves on single imputation in many ways with the use of multiple approximations for the imputed values and allowing for the imputation of several variables in the same process. MI works without modification if the missing data included in the dataset are either MAR or MCAR. For data that is MNAR sometimes with the appropriate adjustments to the data multiple imputation methods are suitable. 
 
@@ -192,33 +210,31 @@ So what can be seen here from the three penalisation model graphs are three diff
 The plots show only a relationship between a dependent variable and two independent variables, hence the ability to plot this on an x-y plane. For more than two independent variables the plots get more complex and include further dimensions so they are very tricky to display on paper
 
 \subsubsection{Random Forest}
-To explain the random forest method, the concept of a decision tree must be established first. At the beginning of constructing a decision tree \(100\%\) of the dependent variable data constitutes what is labelled the root node of the tree [cite decision trees]. From there this node is split in two. How this is determined is based on attributes of the indepent variables used in the model. When training a decision tree the independent variables are used to determine how to split the data into the two new nodes. From here the node that includes the most data is split further and this continues until splitting the data once more would not improve the fit of the model significantly. A node that will not be split further is labelled a leaf and at every node the prediction of the dependent variable is the mean of the values that are included within it. Therefore when evaluating the model the test data would be fed into the tree and the value of the leaf that it ends up in is the prediction for that individual. The evaluation metric can be calculated using these predictions and the actual values.
+To explain the random forest method, the concept of a decision tree must be established first[decision trees to RF]. At the beginning of constructing a decision tree \(100\%\) of the data constitutes what is labelled the root node [cite decision trees]. From there this node is split in two and then two again and so on. How these splits are determined is based on attributes of the indepent variables used in the model. When training a decision tree the independent variables are used to determine how to split the data into the two new nodes, or leaves. Should a leaf be split in a way that minimises the mean squared error by a significant it will carry on splitting. Given this standard, a leaf that will not be split further is labelled a terminal node. Each terminal node includes a subset of the overall population of the dataset, and each individual is assigned a prediction of the dependent variable which is equivalent to the mean of the dependent variable values in the training set[average prediciton decision]. Therefore when evaluating the model the test data would be fed into the tree and the predictions obtained depend on which leaf each individual falls into. The evaluation metric can then be calculated using these predictions and the actual values.
+
+How the algorithm splits the data is determined by how much a variable or multiple variables minimise the mean squared error after the split[split RF webpage] and the same is true for the decision on which leaf to split further. In CART trees, classification and regression trees, only one variable is selected[CART splits] and these are the type of trees that are used as the makeup for the ensemble random forest model. All univariate decision trees, by nature, follow the CART model in that only one variable is used to determine each split. However there are other multivariable models that use a linear composition of the variables to consider to determine the splits [Univariate and multivariate decision trees], tree algorithms such as oblique decision trees separate data in this way[oblique decision], but these are not used in the random forest R function used in this report. 
 
 As an example consider a univariate model where the price of a product, in a non-specific currency, is used to predict how many products are sold. The data consists of \(100\) products each of different prices and the total sales of each. The trained decision tree for this data is plotted as follows.
 
 \includegraphics{example decision tree 2}
 
-Here if the price of the product is \(> 3.40\) the prediction for the amount sold is \(42\). The sales are predicted to be \(26\) for products sold between \(1.10\) and \(3.40\), products sold for less than \(0.41\)  have a predicted amount of \(12\),  for products sold between \(0,46\) and \(1.10\) have a predicted amount of 16 and finally the products sold with a price ranging from \(0.41\) and  \(0.46\) has a prediction of 30. Mostly this tree makes sense to show a coherent relationship between price of a product to the amount sold, however the figure of the predicted sales for the products priced between \(0.41\)and \(0.46\) doesn't follow the pattern. This is likely due to the fact that there is a small sample size in this section, \(n = 7\),  which may include some outliers that increase the mean average value. There are parameters that can be set to avoid this kind of issue. One is minsplit, which is the minimum number of individuals in the section for it to be split. This can help alleviate the final splits from having a small population and the predictions from being inaccurate. The depth of the tree can also be controlled with the maxdepth parameter.
+%Here if the price of the product is \(> 3.40\) the prediction for the amount sold is \(42\). The sales are predicted to be \(26\) for products sold between \(1.10\) and \(3.40\), products sold for less than \(0.41\)  have a predicted amount of \(12\),  for products sold between \(0,46\) and \(1.10\) have a predicted amount of 16 and finally the products sold with a price ranging from \(0.41\) and  \(0.46\) has a prediction of 30. Mostly this tree makes sense to show a coherent relationship between price of a product to the amount sold, however the figure of the predicted sales for the products priced between \(0.41\)and \(0.46\) doesn't follow the pattern. This is likely due to the fact that there is a small sample size in this section, \(n = 7\),  which may include some outliers that increase the mean average value. There are parameters that can be set to avoid this kind of issue. One is minsplit, which is the minimum number of individuals in the section for it to be split. This can help alleviate the final splits from having a small population and the predictions from being inaccurate. The depth of the tree can also be controlled with the maxdepth parameter.
+
+From this figure you can see the cascading steps from node to node as the algorithm determines the prediction of the target variable. The value for which each split is decided upon is as described earlier, the algorithm will find the one split that has the most significant minimisation of the mean squared error. Since this example includes a relatively small sample population of data so there is bound to be some unusal predictions. Case in point the price values between 0.41 and 0.46 giving a sales prediction of 30, deviating strongly from the pattern of the association. This comes as a limitation of the single decision tree model, specifically one that has a small sample with some outliers, as it is prone to overfitting therefore not being so useful to predict unseen data.
 
 %include graph of relationship
 
 This is a graph visualisation of the data for the price of the product the products sales with lines that split the graph into sections according to the output of the decision tree model. Upon inspection it can be confirmed that the \(0.41 < 0.46\) price group does in fact include a very significant outlier and other higher values than would be expected for that section therefore resulting in an unusually increased prediction.
 
-It is worth noting that this data has been randomly generated and in no way models the actual relationship between the price of a product and its subsequent sale figures.
+It is worth noting that this data has been randomly generated and in no way models the actual relationship between the price of a product and its subsequent sales figures.
 
 This example and explanation of basic decision trees lays the groundwork for the explanation of random forest prediction models.
 
-Random forest is an ensemble method, one that is an ensemble of multiple decision trees. This model applies a bootstrapping technique to sample with replacement data from the train dataset to create D new datasets that will be used to train D trees. The number of trees is to be determined and tuned as a parameter of the model. With random forest the number of variables to consider for each split is limited to the hyperparameter mtry where mtry is less than the number of predictor variables. A larger mtry value will increase the amount of bias whereas the a low mtry value will increase the amount of variance, so finding the optimal value is key to find a middle ground in reducing the variance and the bias. This hyperparameter is very influential as it is what separates the random forest out from other models. The D trees therefore constitue the forest part of the algorithm each giving separate predictions for the data. The next step of the algorthim is to aggregate the predictions from each of the trees. Since this is done with a k-cross validation these steps are repeated k times. Then the model can be evaluated according to the process of using the test dataset to test the model and produce the values for the performance metrics. 
+Random forest is an ensemble method, one that is an ensemble of multiple decision trees[ensemble of trees]. This model applies a bootstrapping aggregation, bagging, technique to sample with replacement from the training dataset to create D new datasets that will be used to train D trees[bagging], where the number of trees can be tuned as a parameter of the model. With random forest the number of variables randomly selected to consider for each split is limited by the hyperparameter mtry, a value that will always be less than the number of predictor variables. A larger mtry value will increase the amount of bias whereas the a low mtry value will increase the amount of variance, so finding the optimal value is key to find a middle ground in balancing the variance and the bias. This hyperparameter is very influential as it is what separates the random forest out from other ensemble decision tree models. The D trees therefore constitue the forest part of the algorithm each giving separate predictions for the data. The next step of the algorthim is to aggregate the predictions from each of the trees. Since this is done with a k-cross validation these steps are repeated k times. Then the model can be evaluated according to the process of using the test dataset to test the model and produce the values for the performance metrics. 
 
 To tune the hyperparameters, such as number of trees and mtry, it is useful to visualise their effect on the variance as their value increases. Then it would be much easier to determine the optimal values of the parameters, those that allow for an effective model without introducing too much computational intensity.
 
  to cp decides whether there should be another split, training dataset gets split into D bootstrapped datasets, only m predictors out of the p are selected to decide the trees different for each D dataset, determine the number of predictors to be considered at each split, determine number of trees, evaluate these hyperparameters with a graph which should show the values of the hyperparameters after which there is no significant decrease in the error - an excessively large hyperparameter will increase model complexity and computational intensiveness
-
-
-
-\subsubsection{xgBoost}
-
-
 
 \subsection{Validation Methods}
 It is important to consider the validity of prediction models. There are several methods that are designed to check how well the model has fit to the data and methods are either considered internal or external validation. 
@@ -231,7 +247,9 @@ Bootstrap validation is a sophisticated technique that, since about the 1980s/19
 
 The best way to validate a machine learning prediction model is to validate externally. A model validated only on the data included in the original dataset still carries a lot of optimism and may fit poorly. Evaluation on relevant data obtained in new settings gives a better estimate of how generalisable the model is to a diverse range of populations. The more external validations performed with a more varied array of data provide a greater picture of the generalisability. This is important because if the model is applied to populations with demographics dissimilar to those represented in the training or testing data, the likelihood of inaccurate predictions increases. Inaccurate predictions lead to inefficiencies that reduce the model's usefulness.
 
-\subsection{cross validation to imputation pipeline}
+\subsubsection{Nested Cross Validation}
+
+\subsubsection{cross validation to imputation pipeline}
 To properly assess the performance of a model that is trained with data that has missing values needs to go through both a cross validation and imputation step. It is important to consider the details of the process, mainly deciding the order of the application of the pre-processing imputation and the validation methods. The reason this is so important is due to the need to reduce data leakage [data leakage] in the model. This particular type of leakage is named test-to-train leakage and it describes the idea that if imputation is done before the dataset is split into k-folds there will be leakage because in the process of imputation the test data will be used to affect the imputed data in the training dataset, which is a problem because the test set should be unseen data that has no interference in the training set. So therefore to avoid this type of data leakage it would be advisable to impute the train and test set separately within each cross-validated fold.
 
 When training a given model the amount of seperate models created in this process is equivalent to \(K \cdot M\) where \(K\) is the number of folds used for cross-validation and \(M\) is the number of imputed datasets within each fold. The ultimate aim when training a machine learning model is to have only one model, so the \(K \cdot M \) models will have to be aggregated into one. talk about the with() function and what that does and then talk about the pool function and what that does, then about evaluating the aggregated test sets on the pooled model. The performance metrics will be averaged
@@ -241,10 +259,12 @@ When training a given model the amount of seperate models created in this proces
 \subsection{Feature Importance}
 After obtaining each of the models it is useful to compare how much of an impact each of the variables has on the prediction of the dependent variable.
 
-\subsection{Data Augmentation}
-Data augmentation is the process of enhancing a dataset by applying transformations to the original data to generate additional data. It may be of interest to augment the data as there is a possibility that it could improve the model's accuracy and help it fit better to unseen data.
+%\subsection{Data Augmentation}
+%Data augmentation is the process of enhancing a dataset by applying transformations to the original data to generate additional data. It may be of interest to augment the data as there is a possibility that it could improve the model's accuracy and help it fit better to unseen data.
 
 \section{Results}
+
+\subsection{Dataset Description}
 
 \subsection{Patient Demographics}
 {\seriffont
@@ -258,7 +278,7 @@ Data augmentation is the process of enhancing a dataset by applying transformati
     \hline 
     Characteristic & N = 2303\\
     \hline
-    \multicolumn{2}{|p{13.5cm}|}{Number of previous ICU stays (within admission)} \\
+    \multicolumn{2}{|p{13.5cm}|}{Number of previous ICU stays (within hospital admission)} \\
     \hline
         0  & 2,115 (92.0\%) \\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
@@ -456,9 +476,28 @@ Data augmentation is the process of enhancing a dataset by applying transformati
 \end{center}}
 \normalsize
 
-\subsection{Feature Importance}
+\subsection{Missing Data}
 
-\subsection{Evaluation Metrics}
+\subsection{Imputation}
+
+\subsubsection{Trace Plots}
+
+\subsubsection{Correlation Plot}
+
+\subsubsection{Categorical Missing Values}
+
+\subsection{Prediction Models}
+
+\subsubsection{Linear Regression}
+
+\subsubsection{Penalisation Models}
+
+\subsubsection{Random Forest}
+
+\subsection{Model Performance}
+
+\subsection{Variable Importance}
+
 
 \section{Discussion}
 
