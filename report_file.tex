@@ -10,6 +10,7 @@
 \usepackage{moresize}
 \usepackage[table]{xcolor}
 \usepackage[left=2.54cm, right=2.54cm, top=2.54cm, bottom=2.54cm]{geometry}
+%\showframe
 \newcolumntype{L}[1]{>{\RaggedRight\centering\hyphenchar\font=`\-\arraybackslash}p{#1}}
 \hypersetup{
     colorlinks,
@@ -90,6 +91,32 @@ MIMIC is a large relational database that consists of deidentified data collated
 
 Data can be accessed after completing a short ethics course set up by the CITI programme website.[citeMIMICethics]
 
+\subsection{Literature Review}
+
+%{\seriffont
+%{\small
+%\renewcommand{\arraystretch}{1}
+%\centering
+%\begin{center}
+
+%\setlength{\arrayrulewidth}{0.7mm}
+%\begin{longtable}{ |L{2cm} | L{1cm} | L{2.5cm} | L{2.5cm} | L{4cm} | L{2cm} |} 
+   % \caption{Caption}\label{tab:my_label}\\
+    %\hline
+    %\textbf{Author} & \textbf{Year} & \textbf{Prediction Model} & \textbf{Best Model} & \textbf{Predictor Variables} & \textbf{Data Source} \\ 
+    %\noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+    %\hline
+    %\endfirsthead
+
+%\hline
+%\textbf{Author} & \textbf{Year} & \textbf{Prediction Model} & \textbf{Best Model} & \textbf{Predictor Variables} & \textbf{Data Source} \\
+%\hline
+%\endhead
+
+%\end{longtable}
+%\end{center}}}
+%\normalsize
+
 %\subsection{The Curenetics Dataset}
 %Curenetics is a medical technology organisation that focusses on building sophisticated predictive models to improve decision making to create treatment plans for cancer patients.
 
@@ -151,15 +178,23 @@ Any missing data in a categorical variable was placed into its own missing data 
 \subsection{Missing Values}
 Missing values in the data act as a roadblock to meaningful analysis. Many machine learning models require the input data to be complete for them to work, and their performance is greatly improved when the missingness is remedied so that the resulting study population matches the true population distribution as closely as possible\cite{Hasan2021}.
 
+\subsubsection{Missing Data Types}
 There are three distinct types of missing data, MAR (missing at random), MNAR (missing not at random) and; MCAR (missing completely at random). Data is considered MCAR when the missingness of the data is not reliant on external factors whether that be those recorded within the study or those without. This differs from MNAR which describes missing data that depends solely on data outside the study. And finally MAR is dependent on the data within the study\cite{Yan2025}. The importance of these distinctions lie in the determination of the choice of imputation or deletion method of dealing with this missingness.
 
 Dealing with missing data can involve the complete case analysis omission of records or imputation. Although omission is the simpler method, the resulting model is subject to bias as there due to the possibility for certain groups to have missing data, of the type MAR or MNAR, in some variables. Therefore, omission of these data could potentially lead to a misrepresentative study population which in turn leads to the aforementioned bias in the prediction models\cite{Peng2023}.
 
 A much more valid approach, to minimise bias, is imputation. Imputation is, in simplistic terms, the filling in of missing data, as an approximation, to provide a full dataset for analysis, The imputed data is based on the statistical characteristics of the observed data such as its distribution. For example, if the a variable's distribution is normal, the imputed data should lie somewhere on the same normal distribution with the imputation method mapping the data in this way. 
 
-There are a few methods of data imputation. Single imputation is a basic imputation method that imputes the missing data with single estimated values. One way to singularly impute the data is to use a statistic such as the mean or the median for numerical data, or the mode for categorical\cite{Dettori2018}. For datasets with a significant amount of missing data this imputation method is less suitable and not recommend for producing robust estimates of the missing data as the variance of the resulting imputed distribution would almost certainly be a poor estimation of the variance of the true distribution. Other methods offer an improvement to this simplistic form of imputation. The hot deck method matches individuals based on characteristics, such as age and sex, with which they share sufficient similarity\cite{Andridge2010} and uses these groups to impute the missing data in the dataset. The individual with the missing data is labelled the recipient and the individual with the data used to impute the missing value is labelled the donor. How the donor is selected is dictated by the type of hot deck imputation used \cite{Georgiadis2025}. of imputing all the missing data with the same value, methods such as hot deck or regression give imputations that differ depending on the characteristics of each record. Regression models for imputation also use data from other variables by using established regression techniques such as those used to predict the length of stay in this study, for example linear regression and random forest. It is worth noting that both these methods require the external variables used to be complete, where you have datasets with a lot of missing data these methods are less effective. Despite the improvements from using these methods, single imputation is not the optimal method when missingness in the dataset is more prevalent and therefore advanced methods should be considered.
+\subsubsection{Dummy Coding}
+Categorical data are not handled well by machine learning models as they are designed to make predictions from data in numerical form. This is where dummy coding comes in. The idea, to put it briefly, is to assign binary values as an indication as to which category the record falls into. For example if a categorical variable has four categories then three separate columns would be created. Let's say a patients admission type is urgent, then the value in the urgent admission column would be 1 and in all other admission type columns the value would be 0. category in that variable is urgent admission then every admission record included in this category would receive a value of 1 and the others a value of 0. As would be the same for all but one of the other categories in that variable. The one variable this is not the same for is the variable that isn't given its own column. To determine if the patient is in this categorical group each of the other categories, which all have a column, are set to 0. In this way dummy coding differentiates from a similar method of converting categorical data to numerical known as one-hot encoding.
 
-Multiple imputation improves on single imputation in severak ways with the use of multiple approximations for the missing data and allowing for every variable, including those with missing data, to be used in the imputation process\cite{White2010}. MI works without modification if the missing data included in the dataset are either MAR or MCAR. For data that is MNAR sometimes with the appropriate adjustments to the data multiple imputation methods are suitable. 
+Dummy coding is also helpful for eliminating the need to impute missing categorical data. A missing data category can created for use in the coding process.
+
+\subsubsection{Single Imputation Methods}
+ Single imputation is a basic imputation method that imputes the missing data with single estimated values. It is most important to note that these methods only impute with one iteration. One way to singularly impute the missing data  is to replace it with a summary statistic, such as the mean or median for quantitative variables or mode for qualitative variables  of the within a variable is to use a statistic such as the mean or the median for numerical data, or the mode for categorical\cite{Dettori2018}. For datasets with a significant amount of missing data this imputation method is less suitable and not recommended for producing robust estimates as the variance of the resulting imputed distribution would almost certainly be a poor estimation of the variance of the true distribution. Other methods offer an improvement to this simplistic form of imputation. The hot deck method matches individuals based on characteristics, such as age and sex, with which they share sufficient similarity\cite{Andridge2010} and uses these groups to impute the missing data in the dataset. The individual with the missing data is labelled the recipient and the individual with the data used to impute the missing value is labelled the donor. How the donor is selected is dictated by the type of hot deck imputation \cite{Georgiadis2025}. of imputing all the missing data with the same value, methods such as hot deck or regression give imputations that differ depending on the characteristics of each record. Regression imputation also uses data from other variables and imputes with regression techniques, such as those used to predict the length of stay in this study. It is worth noting that both these methods require the external variables used to be complete, where you have datasets with a lot of missing data these methods are less effective. Despite the improvements from using these methods, single imputation is not the optimal method when missingness in the dataset is more prevalent and therefore advanced methods should be considered.
+
+\subsubsection{Multiple Imputation and MICE}
+Multiple imputation improves on single imputation in several ways with the use of multiple approximations for the missing data and allowing for every variable, including those with missing data, to be used in the imputation process\cite{White2010}. MI works without modification if the missing data included in the dataset are either MAR or MCAR. For data that is MNAR sometimes with the appropriate adjustments to the data multiple imputation methods are suitable. 
 
 A common MI method is known as multivariate imputation by chained equations (MICE) (2). This method imputes every variable using data from the other variables as predictive inputs the defined model whether it be regression, random forest or some other kind.
 
@@ -170,20 +205,22 @@ As stated previously, the method of imputation within the MICE process can be ch
 PMM involves a process of regression and nearest neighbour selection to impute its values. Its first iteration takes the observed values to build a regression model, via linear regression, to impute the missing values. The next step is taking k nearest neighbours. Each imputed data point has k values from the original observed data that are closest to it. The idea is to then take a random value and replace the value from the imputation via regression. This process is repeated in each iteration, where, in this instance, every value including those observed is replaced\cite{Morris2014}.
 
 %Firstly, for the MICE process, the missing data in the dataset is imputed with a statistic such as the mean or median in each variable. The next step is an iterative process that improves the imputations using the other variables in the dataset through a specified predictive method. Each iteration improves the accuracy of the imputed values given that the missingness in the dataset is not too high. These steps are repeated so that eventually M multiple imputed datasets are created. Then the prediction model is run on each of these datasets and the parameters are pooled. In theory this should be an improvement on methods of single imputation.
-\begin{itemize}
-    \item A high percentage of missing data can cause inaccuracies and bias.
-    \item Variables that are not well predicted by the other variables will lead to imputations that are inaccurate.
-\end{itemize}
+%\begin{itemize}
+   % \item A high percentage of missing data can cause inaccuracies and bias.
+    %\item Variables that are not well predicted by the other variables will lead to imputations that are inaccurate.
+%\end{itemize}
 
 The MICE process is only suitable for data that is not MNAR, some adjustment would be needed to account for this type of data. This paper assumes data is either MAR or MCAR.
 
 %\begin{itemize}
-   % \item Pattern Mixture Model
+   % \item Pattern Mixture Mode
     %\item Selection Models
   %  \item Bayesian Models
    % \item Sensitivity Analysis
    % \item Inverse Probability Weighting
 %\end{itemize}
+
+\subsubsection{MICE}
 
 \subsection{Prediction Models}
 The primary outcome of interest in this study is the metric evaluating the lung cancer patients' length of stay in the ICU. Therefore, experimenting with machine learning prediction models such as linear regression, penalisation methods and random forests will help identify a suitable and optimal model.
@@ -215,8 +252,6 @@ Since the key goal in improving a linear regression model is minimising the erro
 
 With \(i\) representing an individual record summing to the sample size of \(n\) and \(j\) representing a predictor variable among \(p\) predictor variables. So the function to build the model within the code would find the  \(\beta\) values to minimise this equation, these \(\beta\) values can then be used in the original equation to predict the dependent \(y\) variable.
 
-\subsubsection{One Hot Encoding}
-Categorical data are not handled well by machine learning models because they are designed to handle numerical data. This is where one hot encoding comes in. The idea, to put it briefly, is to assign binary values as an indication as to which category the record falls into. For example if a categorical variable has four categories then four separate columns would be created. Let's say a category in that variable is urgent admission then every admission record included in this category would receive a value of 1 and the others a value of 0. As would be the same for the other categories in that variable
 
 \subsubsection{LASSO and Ridge Regression}
 LASSO and ridge regression models introduce a \(\beta\) coefficient penalisation term which minimises their value towards zero to reduce overfitting in the model. When the model is overfitting it is trained too well to make predictions on the training data. This is a problem because any new data, which in some way would definitely differ from the data the model is trained on in it's composition, used to make predictions would produce predictions that may be far from equivalent to the actual values. So these two regression models both introduce a lambda term which needs to be tuned carefully to find the best model that reduces overfitting, improves prediction and does this without creating an overly complex model. So the equation for these two models is very similar to the equation for the OLS. For ridge regression the equation is as follows.
@@ -296,11 +331,18 @@ Imputation before cross validation before cross validation results in a lower va
 
 So with the decision made that the order of imputation within cross validation as the more suitable choice a visualisation is useful to properly show how this works.
 
-\includegraphics{Cross-validation}
+\includegraphics[width = 150mm, scale = 0.75]{imputedcv11}
+
+This visualisation shows how to implement the MICE imputation process within one cross validation fold to produce a value of the validation metric. The cross validation fold with missing data is imputed five separate times. The train set is imputed first, then the corresponding test set is imputed by using the imputer devepoloped when imputing the train set. Since the order of the validation is imputation within cross validation each imputed set of train and test sets should be validated against each other. This is shown in the figure by the various arrows representing the many-to-many validation to produce five validation metrics values, these are averaged to obtain the value of the validation metric for this fold. This value is used amongst the other values of the fold validation folds to produce the final validation value of the final model.
+
+\includegraphics[width = 150mm, scale = 0.75]{cv7}
+
+This figure visualises the inner loop of nested cross-validation which is the result of the decision to add a layer of cross validation within each fold. As shown, each imputed train dataset is taken and split into k-folds, just as in the outer loop. The process then plays out as a standard k-fold cross validation as is detailed above. This repeats in an iterative fashion as it cycles through values of the hyperparamer, which this inner loop attempts to tune.
+
 
 %To properly assess the performance of a model that is trained with data that has missing values needs to go through both a cross validation and imputation step. It is important to consider the details of the process, mainly deciding the order of the application of the pre-processing imputation and the validation methods. The reason this is so important is due to the need to reduce data leakage in the model. This particular type of leakage is named test-to-train leakage and it describes the idea that if imputation is done before the dataset is split into k-folds there will be leakage because in the process of imputation the test data will be used to affect the imputed data in the training dataset, which is a problem because the test set should be unseen data that has no interference in the training set. So therefore to avoid this type of data leakage it would be advisable to impute the train and test set separately within each cross-validated fold.
 
-When training a given model the amount of seperate models created in this process is equivalent to \(K \cdot M\) where \(K\) is the number of folds used for cross-validation and \(M\) is the number of imputed datasets within each fold. The ultimate aim when training a machine learning model is to have only one model, so the \(K \cdot M \) models will have to be aggregated into one. talk about the with() function and what that does and then talk about the pool function and what that does, then about evaluating the aggregated test sets on the pooled model. The performance metrics will be averaged
+%When training a given model the amount of seperate models created in this process is equivalent to \(K \cdot M\) where \(K\) is the number of folds used for cross-validation and \(M\) is the number of imputed datasets within each fold. The ultimate aim when training a machine learning model is to have only one model, so the \(K \cdot M \) models will have to be aggregated into one. talk about the with() function and what that does and then talk about the pool function and what that does, then about evaluating the aggregated test sets on the pooled model. The performance metrics will be averaged
 
 %include diagram of the with and pool process to get the final model
 
@@ -314,7 +356,21 @@ When training a given model the amount of seperate models created in this proces
 
 \subsection{Dataset Description}
 
-\subsection{Patient Demographics}
+\subsubsection{Data Extraction}
+
+The MIMIC-IV dataset provides data on 364,627 unique individuals who give 546,028 hospitalisations with 94,458 unique ICU stays. To identify the lung cancer ICU stays the data in the ICU stays table must be sifted through by the ICD-9 and ICD-10 codes that identify lung cancer. Data is removed if it is outside of the normal range in any of the variables. After doing this the number of ICU stays for patients with lung cancer comes to a value of 2,390, sourced from 2,115 unique admissions.
+
+An admission may have multiple ICU stays recognised within the dataset. If two concurrent ICU stays are less than or equal to 24 hours apart their lengths of stay are added together and treated as one stay. If this is not the case they will be treated as two separate ICU stays. A column is created to differentiate the ICU stays from the same admission marking the number of previous stays. This reduction leaves the dataset with 2,303 ICU stays.
+
+The flowchart in figure ... below shows how the ICU stays, used in the prediction models, are extracted from the MIMIC-IV dataset.
+
+\subsubsection{ICU Stay Demographics}
+
+Among the 2,303 ICU stays there is a slight favour of males, \(54\%\), to females, \(46\%\).  The most populous age range is the 61-70  year old group, \(33.4\%\), followed by the 71-80 group, \(29.0\%\). The 18-40 group is markedly small, \(0.6\%\),  given it's wide range. The majority of patients' ICU stays, included in this dataset, are of white ethnicity, \(72.6\%\), and the majority of patients are in hospital with medicare insurance , \(61.6\%\). Over half of the stays, \(55.5\%\) were from the result of emergency admissions. More detailed statistics is given in table 1.
+
+\includegraphics[width = 150mm, scale = 0.75]{flowchart}
+
+
 {\seriffont
 {\small
 \renewcommand{\arraystretch}{1}
@@ -526,21 +582,41 @@ When training a given model the amount of seperate models created in this proces
 
 \subsection{Missing Data}
 
-\subsection{Imputation}
+\includegraphics[width = 150mm, scale = 0.75]{missing_data}
 
-\subsubsection{Trace Plots}
+All of the data variables shown in this graph have highly significant amounts of missing data with not one variable showing a percentage of missing data less than 50 \%\.  This is not very conducive for the inclusion of these variables in the prediction models since when data is more than 40 \%\ missing it can only be considered as hypothesis generating and therefore will likely not provide accurate predictions. However, some data must be used so for the purposes of the continuation of the study the variables in green are kept as predictors in the model. 
+
+\subsection{Imputation}
 
 \subsubsection{Correlation Plot}
 
+\includegraphics[width = 150mm, scale = 0.75]{correlation}
+
+The correlation graph shows that most of the variables are not significantly correlated enough that it would affect the imputation process by not enabling the model to converge for all variables. However the haematocrit and the haemoglobin variables are very significantly correlated, and therefore they have high levels of multicolinearity, which should hinder the models potential to converge and produce reliable imputed data. An adjustment to the prediction matrix is needed to remove the relationship between haematocrit and haemoglobin from the imputation process.
+
+\subsubsection{Trace Plots}
+
+\includegraphics[width = 150mm, scale = 0.75]{trace_haemo1}
+
+\includegraphics[width = 150mm, scale = 0.75]{trace_haema1}
+
+Clearly shown in the trace plots above the mean of the data for both the haemoglobin and the haematocrit variables tends to increase with each imputation iteration. Ideally there should be a point where the mean should remain mostly unchangable from iteration to iteration. To fix this the predictor matrix should be amended. The way to do this is to not have the haematocrit be influential on the imputation of the haemoglobin and vice versa. The predictor matrix determines this with the use of binary inputs. The default is a matrix full of 1s which allows for an imputation where every variable affects the imputation of each other. By changing the 1s that refer to the haematocrit/haemoglobin interaction to 0 the trace plots should be corrected.
+
+\includegraphics[width = 150mm, scale = 0.75]{trace_haemo2}
+
+\includegraphics[width = 150mm, scale = 0.75]{trace_haema2}
+
+These plots show a more correct imputation where the mean reaches a point where it remains mostly unchangable from iteration to iteration.
+
 \subsubsection{Categorical Missing Values}
 
-\subsection{Prediction Models}
+%\subsection{Prediction Models}
 
-\subsubsection{Linear Regression}
+%\subsubsection{Linear Regression}
 
-\subsubsection{Penalisation Models}
+%\subsubsection{Penalisation Models}
 
-\subsubsection{Random Forest}
+%\subsubsection{Random Forest}
 
 \subsection{Model Performance}
 
