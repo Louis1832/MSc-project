@@ -632,6 +632,18 @@ This figure visualises the inner loop of nested cross-validation which is the re
 %\subsection{Data Augmentation}
 %Data augmentation is the process of enhancing a dataset by applying transformations to the original data to generate additional data. It may be of interest to augment the data as there is a possibility that it could improve the model's accuracy and help it fit better to unseen data.
 
+\subsection{Variable Importance}
+
+\subsubsection{Linear Regression}
+
+\subsubsection{Random Forest}
+
+The out of the bag data used to evaluate the model can also be used to find the importance of each variable.
+
+To start with, in a single tree, the original MSE is calculated. To find the importance of a single variable its predictive effect is removed and a new MSE is calcuated. To remove the predictive effect of the variable its data are shuffled so that the values belong to the wrong records. The increase in MSE as a percentage is taken as a result. This is repeated for each variable in the data then the whole process is repeated in every other tree in the model. The overall measure of importance is the average percent increase in MSE where higher percent increase indicates higher importance.
+
+%The random forest model measures variable importance by the average \(\%\)  of MSE increase.  after the removal of the predictive effect
+
 \section{Results}
 
 \subsection{Dataset Description}
