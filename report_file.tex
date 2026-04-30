@@ -33,8 +33,8 @@ sorting=none
 \title{Machine Learning Prediction of Intensive Care Length of Stay for Lung Cancer Patients}
 %\author{Louis Bolduc}
 \date{September 2024}
-
 \maketitle
+\newpage
 \tableofcontents
 \pagebreak
 
@@ -46,6 +46,7 @@ sorting=none
 \begin{abstract}
  
 \end{abstract}
+\newpage
 
 \section{Introduction}
 
@@ -78,41 +79,52 @@ The main aims and objectives are the following:
 \end{itemize}
 
 \subsection{Background to Lung Cancer and ICU Treatment}
-Cancer is a disease that involves the uncontrollable multiplication of malignant cells, in some cases forming tumours in organs or tissues. In the US, and many other countries around the world, cancer has become the leading cause of death, and in the US specifically it has been reported that around 1 in 3 people will be diagnosed with any cancer and 1 in 6 of cancer mortality in their lifetimes. This statistic indicates that the volume of patients requiring ICU treatment will be significantly large and therefore the optimisation of length of stay analysis is key to resource management and patient care planning. Lung cancer in particular describes the cancerous cell growth in the lungs and is regarded as a serious health issue for both the patient and healthcare systems worldwide.
+Cancer is a disease that involves the uncontrollable multiplication of malignant cells, in some cases forming tumours in organs or tissues. In the US, and many other countries around the world, cancer has become the leading cause of death, and in the US specifically it has been reported that around 39\% people will be diagnosed with any cancer in their lifetimes\cite{cancerCancerSite}. In 2025 it was reported that around 12\% of cancer cases were lung cancer cases\cite{cancer}. These statistics indicates that the volume of patients requiring ICU treatment may be significantly large and therefore the optimisation of length of stay analysis is key for adequate resource management and patient care planning. Lung cancer in particular describes the cancerous cell growth in the lungs and is regarded as a serious health issue for both the patient and healthcare systems worldwide.
 
-According to the official WHO global cancer observatory, lung cancer is the cancer with the highest percentage of mortality and one of the most prevelant. To link this to the statistic previously mentioned, lung cancer will develop in approximately 1 in 17 and be the cause of death in 1 in 28 of Americans. This prevelance and mortality differs when broken down by sex and lung cancer is not the most prevelant or most deadly cancer for women, breast cancer is, however when addressing the whole population lung cancer is the cancer that poses the biggest threat. Focusing on the one cancer that is singled out as the most threatening allows for a more concentrated study that should in theory generate more useful results. 
+%According to the official WHO global cancer observatory, lung cancer is the cancer with the highest percentage of mortality and one of the most prevelant. To link this to the statistic previously mentioned, lung cancer will develop in approximately 1 in 17 and be the cause of death in 1 in 28 of Americans.
+This prevelance differs when broken down by sex and lung cancer is not the most prevelant cancer for women, breast cancer is, or for men where prostate cancer is the most prevelant however when addressing the whole population lung cancer is the cancer that poses the biggest threat. Adressing both males and females, the mortality rates are higher than any other cancer. Focusing on the one cancer that is singled out as the most threatening allows for a more concentrated study that should in theory generate more useful results. 
 
-As of Joohyn Park., et al's 2019 report, the mean annual health care expenditure for a lung cancer patient in the US is \$35,141. This was significantly higher than the 4 most common cancer types that were included and approximately 8-9 times as high for a cancer free patient, \$4484. These numbers point towards the extent of how significant the burden of lung cancer is on the US healthcare system. They also report that lung cancer tends to be diagnosed at more advanced stages so the survival duration is short with a 5-year survival rate estimated at 18.6\%. With a higher number of cases diagnosed at advanced stages, intensive care units are expected to be required to administer treatment to patients.
+As of Joohyn Park., et al's 2019 report\cite{Park2019}, the mean annual health care expenditure for a lung cancer patient in the US is \$35,141. This was significantly higher than the 4 most common cancer types that were included and approximately 8-9 times as high for a cancer free patient, \$4,484. These numbers point towards the extent of how significant the burden of lung cancer is on the US healthcare system. They also report that lung cancer tends to be diagnosed at more advanced stages so the survival duration is short. A separate, more recent, report notes the estimated 5 year survival rate at 27\% as of 2025 \cite{cancer}. With a higher number of cases diagnosed at advanced stages, intensive care units are expected to be required to administer treatment to patients.
 
 %Malignant cancer cells in the body often escape detection, limiting the ability of the immune system to prevent their spread and mitigate the resulting damage. Immunotherapy is a treatment that boosts the immune response and prevents cancer cells from suppressing it, enabling the immune system to detect and destroy cells more effectively. For early stage lung cancer, stages I-III, immunotherapy is still not considered the most effective form of treatment in most cases; however, a significant proportion of patients in the latter stages of the disease will receive some form of this treatment.
 
 %\subsection{Length of Stay Prediction}
-The length of stay in an ICU ward is an important piece of information for clinicians to know and if it can be predicted accurately the efficiency of the intensive care process would improve and so would the quality of care provided. At the time of writing, although some machine learning predictions of ICU length of stay are being researched and perhaps trialled in a limited amount of hospitals, the majority of healthcare systems go by clinical judgement alone. One of the main reasons behind this stems from the lack of understanding regarding how to pair the machine learning assistance to the clinician's expertise in a way that optimises the blend of predictive knowledge that both provide\cite{MachineLearningOpportunities}. The lack of use of these methods in practice provides a rationale for conducting this type of study.
+The length of stay in an ICU ward is an important piece of information for clinicians to know and if it can be predicted accurately the efficiency of the intensive care process would improve and so would the quality of care provided. At the time of writing, although some machine learning predictions of ICU length of stay are being researched\cite{Zhang2024}\cite{Yuan2025}\cite{Zhao2026}\cite{Nguyen2026}, the majority of healthcare systems go by clinical judgement alone\cite{Mak2012}. One of the main reasons behind this stems from the lack of understanding regarding how to pair the machine learning assistance to the clinician's expertise in a way that optimises the blend of predictive knowledge that both provide\cite{MachineLearningOpportunities}. The lack of use of these methods in practice provides a rationale for conducting this type of study.
 
 \subsection{Machine Learning}
 
 \subsubsection{What is Machine Learning?}
 
-The advancement of computational power and access to large amounts of data has created an opening for the application of statistical techniques to develop machine learning algorithms to produce potentially quite accurate and useful results. Machine learning works similarly to the human brain in that it takes in input information and uses it to build a form of understanding of abstract concepts. Computers will attempt to learn from their input data to identify patterns for use in making predictions or in producing analyses.
+The advancement of computational power and access to large amounts of data has created an opening for the application of statistical techniques to develop machine learning algorithms to produce potentially quite accurate and useful results. Machine learning works similarly to the human brain in that it takes in input information and uses it to build a form of understanding of abstract concepts. Machine learning algorithms learn from their input data to identify patterns for use in making predictions as an aid for real life decision making.
 
-There are some things to consider when creating a machine learning model. A model that is trained on data from a specific portion of a population, for example a model that is trained on data from people of a specific country, creates selection bias which renders the model less useful for the rest of the population. So one way to combat this would be to retrain the model on data specific to the population it is intended to be used for. There is also the case of overfitting and underfitting. An underfitted model fails to identify the patterns in the data which may come down to too few variables. An overfitted model is practically the opposite, the model fits too well on the data given therefore performing less well on new data. Adressing these challenges is key to creating and deploying a significantly useful model. 
+A machine learning relies heavily on the amount of input data, the sample size, and also the quality of said data\cite{Chen2019}. A larger sample size allows for a broader representation of trends in the data, while data quality determines the reliability and usefulness of the results. 
 
-\subsubsection{Possible Benefits}
+There are many aspects of the input data that determine its quality: \begin{itemize}
+\item The completeness or, in other words, magnitude of missingness. 
+\item The number of predictor (independent) variables and whether they are relevant for the outcome being predicted.
+\item The degree to which the sample data is inclusive of various subgroups of the wider population. For example, if the majority of the sample group are ethnically white the model may have less reliable results for individuals from other ethnic groups.
+\item  Recency of data collection. Up to date records are more informative.
+\item Uniformity of data units.
+\end{itemize}
+
+%There are some things to consider when creating a machine learning model. A model that is trained on data from a specific portion of a population, for example a model that is trained on data from people of a specific country, creates selection bias which renders the model less useful for the rest of the population. So one way to combat this would be to retrain the model on data specific to the population it is intended to be used for. There is also the case of overfitting and underfitting. An underfitted model fails to identify the patterns in the data which may come down to too few variables. An overfitted model is practically the opposite, the model fits too well on the data given therefore performing less well on new data. Adressing these challenges is key to creating and deploying a significantly useful model. 
+
+\subsection{Intended Use}
 
 %At current clinicians do not use machine learning techniques to predict length of stay for lung cancer ICU patients. Their predictions or estimates almost primarily come down to clinical judgement. Therefore estimates may vary depending on a clinicians experience and familiarity to the patient. This prediction is also not an immediate priority for the clinician, they may have the most granular knowledge but they are more focused on administering the best possible treatment to their patients. Therefore a clinically significant machine learning prediction model could help as an aide for hospital staff to make good approximations of the length of stay for an individual patient.
 
-Due to factors such as an aging population, medical advancements and staffing shortages, ICUs have now a greater utilisation for severe medical complications such as lung cancer. This raises a few challenges that a robust length of stay prediction could help to solve.
+Due to factors such as an aging population, medical advancements and staffing shortages, ICUs are now greater utilised for severe medical conditions such as the complications that arise from diseases like lung cancer\cite{Halpern2016}. This raises a few challenges that a robust length of stay prediction could help to solve.
 
 It is imperative for hospital staff to have an understanding of bed availability so that they can manage the influx of new patients effectively. Knowing which beds may shortly become available helps ward managers plan ahead for incoming patients and provides an estimate of how many beds an ICU ward may need. 
 
 Length of stay predictions can contribute to a more educated forecast for the ward's running cost. With this information the hospital can generate a more realistic budget which may reduce the likelihood of excessive spending and underfunding.
 
-At current clinicians do not use machine learning techniques to predict length of stay for lung cancer ICU patients. Their predictions or estimates almost primarily come down to clinical judgement. Therefore estimates may vary depending on a clinicians experience and familiarity to the patient. This prediction is also not an immediate priority for the clinician, they may have the most granular knowledge but they are more focused on administering the best possible treatment to their patients. Therefore a clinically significant machine learning prediction model could help as an aide for hospital staff to make good approximations of the length of stay for an individual patient.
+At current clinicians do not use machine learning techniques to predict length of stay for lung cancer ICU patients. Their predictions or estimates almost primarily come down to clinical judgement. Therefore estimates may vary depending on a clinicians experience and familiarity to the patient. This prediction is also not an immediate priority for the clinician, they may have the most granular knowledge but they are more focused on administering the best possible treatment to their patients. Therefore a clinically significant machine learning prediction model could help as an aide for hospital staff to make good approximations of the length of stay for an individual patient\cite{DosSantos2025}.
 
 %The knowledge of how long a patient will stay on the ward is a useful bit of information for managing costs. Since longer stays mean higher costs, length of stay predictions can be used to estimate how much a hospital needs to be spending on the ICU ward which distinguishes how much of a hospital's overal budget goes toward the ICU.
 
 \subsection{The MIMIC Database}
-MIMIC is a large relational database that consists of deidentified data collated from thousands of admissions to the intensive care unit of the Beth Israel Deaconess Medical Centre in Boston, Massachusetts. The acronym MIMIC has stood for ``Multiparameter Intelligent Monitoring in Intensive Care" and more recently ``Medical Information Mart for Intensive Care". Some key features of this database are that it is the only freely accessible critical care database of its kind and contains detailed information on patients spanning more than a decade. 
+MIMIC is a large relational database that consists of deidentified data collated from thousands of admissions to the intensive care unit of the Beth Israel Deaconess Medical Centre in Boston, Massachusetts\cite{physionetMIMICIVV31}. The acronym MIMIC has stood for ``Multiparameter Intelligent Monitoring in Intensive Care" and more recently ``Medical Information Mart for Intensive Care". Some key features of this database are that it is the only freely accessible critical care database of its kind and contains detailed information on patients spanning more than a decade. 
 
 The most recent version of the MIMIC database is MIMIC-IV. It includes data collected from January 2008 to December 2022, which is an extension on MIMIC-III which recorded data up to December 2012. Using the updated version should allow for greater relevance and accuracy of the prediction model.
 
@@ -121,7 +133,7 @@ The database is split into four modules, the core data, the hospital data, the I
 %The value of MIMIC lies in the comprehensive real-world data it contains.
 % which enables the model to train more accurately compared to synthetic data, allowing it to fit better to unseen data.
 
-Data can be accessed after completing a short ethics course set up by the CITI programme website.[citeMIMICethics]
+Data can be accessed after completing a short ethics course set up by the CITI programme website\cite{physionetCITICourse}\cite{citiprogramTechEthics}.
 
 \subsection{Literature Review}
 
@@ -149,72 +161,72 @@ Additionally, 1 publication was found outside of PubMed that fit all of the init
  & \textbf{Data Source} \\
 \hline
 \endhead
-  Ilona W.M.Verburg., et al  & 2014 & OLS regression, OLS regression truncated at 30 days, OLS regression log, GLM Gaussian, GLM poisson, GLM negative binomial, GLM Gamma, Cox PH regression & OLS regression truncated at 30 days: R$^2$ - 0.208 (0.2001 to 0.215), RMSPE - 5.150 (5.061 to 5.239), MAPE - 3.099 (3.053 to 3.144), BIAS - 0.015 (-0.044 to 0.074) &%  Number of ICU admissions, ICU LOS in days, Age in year, Sex, Admission type, APACHE IV APS, Ventilation within first 24hrs of ICU admission, One or more chronic diseases, One or more diagnoses at admission, Confirmed infection, Use of vasoactive drugs, Lowest GCS first 24hrs, Non-operative APACHE IV diagnosis category, Post-operative APACHE IV diagnosis category &
+  Ilona W.M.Verburg., et al \cite{Verburg2014} & 2014 & OLS regression, OLS regression truncated at 30 days, OLS regression log, GLM Gaussian, GLM poisson, GLM negative binomial, GLM Gamma, Cox PH regression & OLS regression truncated at 30 days: R$^2$ - 0.208 (0.2001 to 0.215), RMSPE - 5.150 (5.061 to 5.239), MAPE - 3.099 (3.053 to 3.144), BIAS - 0.015 (-0.044 to 0.074) &%  Number of ICU admissions, ICU LOS in days, Age in year, Sex, Admission type, APACHE IV APS, Ventilation within first 24hrs of ICU admission, One or more chronic diseases, One or more diagnoses at admission, Confirmed infection, Use of vasoactive drugs, Lowest GCS first 24hrs, Non-operative APACHE IV diagnosis category, Post-operative APACHE IV diagnosis category &
  NICE\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
-  Qiuying Chen, et al  & 2021 & Naive Bayes, Linear Regression, Decision Tree, Random Forest, Gradient Boosting Decision Tree & Random Forest: AUC - 0.991 (0.978 to 1.000) and 0.837 (0.766 to 0.908) in the training and validation datasets respectively &%  Preoperative (Demographics, Clinical manifestations, medication history, previous history, vital signs, labratory findings and auxilary examinations), Intraoperative (Surgical types, Surgical times, Surgical technique and Intraoperative observation) &
+  Qiuying Chen, et al \cite{Das2021}  & 2021 & Naive Bayes, Linear Regression, Decision Tree, Random Forest, Gradient Boosting Decision Tree & Random Forest: AUC - 0.991 (0.978 to 1.000) and 0.837 (0.766 to 0.908) in the training and validation datasets respectively &%  Preoperative (Demographics, Clinical manifestations, medication history, previous history, vital signs, labratory findings and auxilary examinations), Intraoperative (Surgical types, Surgical times, Surgical technique and Intraoperative observation) &
  Guangdong Provincial Cardiovascular Institute \\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Khalid Alghatani., et al  & 2021 & Linear Regression, Linear Discriminant Analysis, Random Forest, k-Nearest Neighbour, Support Vector Machine, XGBoost, Multivariate Linear Regression, Support Vector Regression & Random Forest &% Heart rate, Arterial systolic blood pressure, Respiratory rate, Body temperature, Arterial diastolic blood pressure, Peripheral oxygen saturation, Blood glucose, Age, Sex, Height, Weight & 
+ Khalid Alghatani., et al \cite{Alghatani2021} & 2021 & Linear Regression, Linear Discriminant Analysis, Random Forest, k-Nearest Neighbour, Support Vector Machine, XGBoost, Multivariate Linear Regression, Support Vector Regression & Random Forest &% Heart rate, Arterial systolic blood pressure, Respiratory rate, Body temperature, Arterial diastolic blood pressure, Peripheral oxygen saturation, Blood glucose, Age, Sex, Height, Weight & 
 MIMIC-III \\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Longxiang Su., et al  & 2021 & Logistic Regression, Random Forest, XGBoost & Random Forest: AUC - 0.76 & %Age, Perfusion index, P(v-a)CO$_2$/C(a-v)O$_2$pCO$_2$, Noradrenaline dosage, Adrenaline dosage, Invasive blood pressure, Central venous pressure, P(v-a)CO$_2$(mmHg), sO$_2$, Lactic acid, Invasive systolic blood pressure, Invasive diastolic blood pressure, Oxygenation index, White blood cell, Platelet count, Total bilirubin, GCS score, Creatine, Oxygen concentration, SpO$_2$, pO$_2$, Heart rate, Body temperature, Respiratory rate, SOFA score  & 
+ Longxiang Su., et al \cite{Relja2021}  & 2021 & Logistic Regression, Random Forest, XGBoost & Random Forest: AUC - 0.76 & %Age, Perfusion index, P(v-a)CO$_2$/C(a-v)O$_2$pCO$_2$, Noradrenaline dosage, Adrenaline dosage, Invasive blood pressure, Central venous pressure, P(v-a)CO$_2$(mmHg), sO$_2$, Lactic acid, Invasive systolic blood pressure, Invasive diastolic blood pressure, Oxygenation index, White blood cell, Platelet count, Total bilirubin, GCS score, Creatine, Oxygen concentration, SpO$_2$, pO$_2$, Heart rate, Body temperature, Respiratory rate, SOFA score  & 
 ICU unit of Peking Union Medical College Hospital \\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Andrea Stieger., et al  & 2025 & Logistic Regression, Random Forest, Stacked Learner, Gradient Boosting Machine, Neural Networks & Stacked Learner: AUROC - 0.94, AUPRC - 0.62 &% Preoperative (Haemoglobin, Platelet count, Prothrombin time, Activated partial thromboplastin time, Sodium, Potassium, Glucose, Albumin, Asparate transterase, Alanine transferase, Blood urea nitrogen, Creatine), Intraoperative (Glucose, bicarbonate, Haematocrit, Ionised calcium, Potassium, Lactate, Sodium, Partial pressure of CO$_2$, pH, Partial pressure of O$_2$, Arterial oxygen saturation &
+ Andrea Stieger., et al \cite{Stieger2025}  & 2025 & Logistic Regression, Random Forest, Stacked Learner, Gradient Boosting Machine, Neural Networks & Stacked Learner: AUROC - 0.94, AUPRC - 0.62 &% Preoperative (Haemoglobin, Platelet count, Prothrombin time, Activated partial thromboplastin time, Sodium, Potassium, Glucose, Albumin, Asparate transterase, Alanine transferase, Blood urea nitrogen, Creatine), Intraoperative (Glucose, bicarbonate, Haematocrit, Ionised calcium, Potassium, Lactate, Sodium, Partial pressure of CO$_2$, pH, Partial pressure of O$_2$, Arterial oxygen saturation &
  Seoul National University Hospital\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Louise Y.Sun., et al  & 2020 & Logistic Regression & Short stay: c-statistic (0.78/ 0.71, derivation/validation), Long stay: c-statistic (0.85/0.78, derivation/validation) This essientially concludes the idea that the logistic regression model may help practictioners &% Age, Body mass index, NYHA classification, LVEF, GFR, Operative characteristics, Type of surgery &
+ Louise Y.Sun., et al \cite{Sun2020}  & 2020 & Logistic Regression & Short stay: c-statistic (0.78/ 0.71, derivation/validation), Long stay: c-statistic (0.85/0.78, derivation/validation) This essientially concludes the idea that the logistic regression model may help practictioners &% Age, Body mass index, NYHA classification, LVEF, GFR, Operative characteristics, Type of surgery &
  University of Ottawa Heart Institute\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Kan Wang., et al  & 2022 & Linear Regression, Naive Bayes, Random Forest, Support Vector Machine, XGBoost & XGBoost: AUC - 0.88 &% Recipient age, Donor age, Donor gender, BMI ratio, Recipient blood type, Blood type match, NYHA, Cardiovascular surgery, Smoking, Alcohol, K$^+$, ALT, AST, Cr, INR, BNP, LDL, Renal complication, Hepatic complication, Hypertension, Diabetes, Extracorporeal circulation time, Aortic cross clamp time, Surgery time, Chest re-exploration, IABP, ECMO, CRRT &
+ Kan Wang., et al \cite{Zhang2022} & 2022 & Linear Regression, Naive Bayes, Random Forest, Support Vector Machine, XGBoost & XGBoost: AUC - 0.88 &% Recipient age, Donor age, Donor gender, BMI ratio, Recipient blood type, Blood type match, NYHA, Cardiovascular surgery, Smoking, Alcohol, K$^+$, ALT, AST, Cr, INR, BNP, LDL, Renal complication, Hepatic complication, Hypertension, Diabetes, Extracorporeal circulation time, Aortic cross clamp time, Surgery time, Chest re-exploration, IABP, ECMO, CRRT &
  Wuhan Union Hospital\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Pepler PT., et al  & 2012 & Poisson Log-linear, Regression Model & Logistic Regression - AUC 0.8507 &% Apgar at 1 min, Apgar at 5 min, Temperature, Birth head circumference, Birth weight, Gestational age, Region, Maternal ethnicity, Delivery mode, Gender &
+ Pepler PT., et al \cite{Pepler2012}  & 2012 & Poisson Log-linear, Regression Model & Logistic Regression - AUC 0.8507 &% Apgar at 1 min, Apgar at 5 min, Temperature, Birth head circumference, Birth weight, Gestational age, Region, Maternal ethnicity, Delivery mode, Gender &
  Vermont Oxford Network\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Yucai Hong., et al  & 2020 & Multivariate Regression Model & Multivariate Regression Model: AUC - 0.848 &% see paper and add in & 
+ Yucai Hong., et al \cite{Hong2020}  & 2020 & Multivariate Regression Model & Multivariate Regression Model: AUC - 0.848 &% see paper and add in & 
 Tertiary Care Hospital in Yueqing City, Zheijiang Province\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Geert Meyfroidt., et al  & 2011 & Logistic Regression, Decision Trees, Random Forest, Support Vector Machines, Gaussian Forest & Gaussian Processes: RMSE - 0.408, AUC - 0.758 &% Not well defined in the paper &
+ Geert Meyfroidt., et al \cite{Meyfroidt2011} & 2011 & Logistic Regression, Decision Trees, Random Forest, Support Vector Machines, Gaussian Forest & Gaussian Processes: RMSE - 0.408, AUC - 0.758 &% Not well defined in the paper &
  MetaVision PDMS Database\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Waqar Aziz., et al  & 2024 & Random Forest, Gradient Boosting & Gradient Boosting: AUC - 0.7243 &% Triage Acuity, Disposition admitted, Elixhauser Comorbidity Index (ECI), Arrival transport unknown, Arrival transport ambulance chief compliant abdominal pain, Age, Disposition transfer, Chief compliant chest pain, Disposition HOME &
+ Waqar Aziz., et al \cite{Aziz2024} & 2024 & Random Forest, Gradient Boosting & Gradient Boosting: AUC - 0.7243 &% Triage Acuity, Disposition admitted, Elixhauser Comorbidity Index (ECI), Arrival transport unknown, Arrival transport ambulance chief compliant abdominal pain, Age, Disposition transfer, Chief compliant chest pain, Disposition HOME &
  MIMIC-IV-ED\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
  \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Belal Alsingwali., et al  & 2022 & Random Forest, XGBoost, Logistic Regression & Random Forest: k-fold = 10 mean accuracy - 87.4\% &% Triage Acuity, Disposition admitted, Elixhauser Comorbidity Index (ECI), Arrival transport unknown, Arrival transport ambulance chief compliant abdominal pain, Age, Disposition transfer, Chief compliant chest pain, Disposition HOME &
+ Belal Alsingwali., et al \cite{Alsinglawi123} & 2022 & Random Forest, XGBoost, Logistic Regression & Random Forest: k-fold = 10 mean accuracy - 87.4\% &% Triage Acuity, Disposition admitted, Elixhauser Comorbidity Index (ECI), Arrival transport unknown, Arrival transport ambulance chief compliant abdominal pain, Age, Disposition transfer, Chief compliant chest pain, Disposition HOME &
  MIMIC-III\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Ha Na Cho., et al  & 2025 & Linear Regression, Random Forest, Support Vector Machine, XGBoost, Their own developed model called SurgeryLSTM & SurgeryLSTM: R$^2$ - 0.86 followed by XGBoost - R$^2$ - 0.85 &%Bone disorder, Chronic kidney disease, Vitreous disorder, Skin abcess, Lumbar decompression, Obesity, Lumbar fusion, Anterior fusion, Cancer metastatis, Fatigue, BMI, Cervical decompression, Multiple myeloma, Brain disorder, Health status, Spinal instrumentation, Additional fusion, Abdominal pain, Hand fracture, Osteomyelitis & 
+ Ha Na Cho., et al \cite{NaCho2025}  & 2025 & Linear Regression, Random Forest, Support Vector Machine, XGBoost, Their own developed model called SurgeryLSTM & SurgeryLSTM: R$^2$ - 0.86 followed by XGBoost - R$^2$ - 0.85 &%Bone disorder, Chronic kidney disease, Vitreous disorder, Skin abcess, Lumbar decompression, Obesity, Lumbar fusion, Anterior fusion, Cancer metastatis, Fatigue, BMI, Cervical decompression, Multiple myeloma, Brain disorder, Health status, Spinal instrumentation, Additional fusion, Abdominal pain, Hand fracture, Osteomyelitis & 
 University of California Irvine Health\\ 
     \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
     \hline
     \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
- Taghi Khanijev., et al  & 2025 & Logistic Regression, Decision Tree, Random Forest, Neural Networks & Random Forest: AUC - 0.824 &% There are too many predictors to list - see paper &
+ Taghi Khanijev., et al \cite{Khaniyev2028}  & 2025 & Logistic Regression, Decision Tree, Random Forest, Neural Networks & Random Forest: AUC - 0.824 &% There are too many predictors to list - see paper &
  MIMIC-IV\\ 
     \hline
 
@@ -244,6 +256,8 @@ The literature research also informs on the complexity of the models, namely the
 %\subsection{GitHub Repository}
 %A GitHub repository has been set up to back up files so that lost work can be retrieved in the event of unexpected technical issues. This will be updated throughout the course of the project.[cite github page]
 
+\newpage
+
 \section{Methods and Materials}
 
 \subsection{Variable Selection}
@@ -262,6 +276,16 @@ In order for data to be extracted from the MIMIC database, the data files from p
 To create the schema, i.e. the layout and structure of the database being created, a SQL script is run, specifically tailored for MIMIC-IV, to construct empty tables ready for the data export process. The script was retrieved from a Github repository.\cite{SQLcode}
 
 After creating the empty database, the data files will need to be prepared ready for export. Some data files were too large for pgAdmin to export in one process. Therefore the larger data files were split into smaller parts with the use of the Windows powershell command line.[cite command code] Once larger data files had been split they were exported into their respective tables in the schema.
+
+\subsection{Eligibilty Criteria}
+
+To be included in the study patients must meet the following eligibility criteria.
+
+The patient must be an adult, as in over 18, at the time of their admission into hospital.
+
+The patient must have at least one ICU admission within their hospital stay.
+
+The patient must have a relevant ICD-9 or ICD-10 code that indicates a diagnosis of lung cancer.
 
 \subsection{Data Extraction}
 Now that the MIMIC database has been setup the data for the determined variables can be extracted.
@@ -585,6 +609,12 @@ It is important to consider the validity of prediction models. There are several
 
 \subsubsection{Performance Measures}
 
+The RMSE is a metric that measures the standard deviation of the residuals in the model. An advantage of using this metric is that it is in the same units as the target variable which adds ease to interpretability. In relevance to this model the RMSE would represent how far off, typically, in days a prediction may be from the actual value. 
+
+MAE, in a sense, shows the same measure as RMSE in that it measures how much a model's predictions deviate from the actual values. The difference between the two is how this figure is calculated. MAE takes the absolute value whereas RMSE takes the squared. Since RMSE penalises larger values more than smaller ones it is more sensitve to outliers than MAE. This may be useful if outliers are more costly in context.
+
+The metric R squared measures the proportion of the dependent variable's variance that can be predicted from the independent variables.
+
 \subsubsection{Internal Validation}
 A common method of internal validation is k-fold cross-validation\cite{Rodrguez2013}. This involves splitting the dataset into k folds, usually k is set to 5 or 10, one split is used as the test dataset and the others used to train the model. In this way, all the data is used both to train and test. The performance metrics in each fold can be evaluated using the predictions and actual values for the test set. k-fold cross-validation is an improvement on the simpler method of split-sampling, which is essentially a cruder version of the method. Split-sampling could be thought of as equivalent to a 1-fold cross-validation just without rotation on different folds as the data is split into only one training set and one test set. The reduced use of the complete data to both train and test, as is the case in cross validation, introduces a higher level of variability and bias in estimating the performance of the model\cite{Varma2006}. This is why the cross validation technique is highly favoured in comparison.
 
@@ -636,6 +666,12 @@ This figure visualises the inner loop of nested cross-validation which is the re
 
 \subsubsection{Linear Regression}
 
+Analysing the representation of variables in linear regression models allows for a rough comparison of their importance.
+
+An essential data pre-processing step to ensure valid interpretations is to scale continuous data so that for each variable the mean is 0 and the standard deviation is 1. Doing so places each variable on the same scale where the coefficients correspond to the effect of a 1 standard deviation change. Dummy coded categorical variables cannot be placed on this scale, however. Their coefficients represent the effect of being in the category as opposed to being in the reference category.
+
+A forest plot can be used to visualise the comparison.
+
 \subsubsection{Random Forest}
 
 The out of the bag data used to evaluate the model can also be used to find the importance of each variable.
@@ -643,6 +679,8 @@ The out of the bag data used to evaluate the model can also be used to find the 
 To start with, in a single tree, the original MSE is calculated. To find the importance of a single variable its predictive effect is removed and a new MSE is calcuated. To remove the predictive effect of the variable its data are shuffled so that the values belong to the wrong records. The increase in MSE as a percentage is taken as a result. This is repeated for each variable in the data then the whole process is repeated in every other tree in the model. The overall measure of importance is the average percent increase in MSE where higher percent increase indicates higher importance.
 
 %The random forest model measures variable importance by the average \(\%\)  of MSE increase.  after the removal of the predictive effect
+
+\newpage
 
 \section{Results}
 
@@ -959,6 +997,7 @@ The linear regression model is the most successful according to the MAE metric w
 
 %\subsection{Variable Importance}
 
+\newpage
 
 \section{Discussion}
 
@@ -979,6 +1018,8 @@ larger datasets, assess on data with less missing data or a significant sample s
 
 \section{Conclusion}
 Findings were not clinincally significant enough for this model to be trusted to make accurate predictions on lung cancer patients length of stay in the ICU but due to the depths of its limitations the possibility for an effective prediction model such as this to be created cannot be ruled out. Further study with fewer limitations may provide a more reliable prediction model
+
+\newpage
 
 \printbibliography
 
