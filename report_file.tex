@@ -50,33 +50,33 @@ sorting=none
 
 \section{Introduction}
 
-\subsection{Aims and Objectives}
-The main aim of this project is to build accurate and efficient machine learning models using data from the MIMIC dataset to enhance the prediction of the length of stay in the Intensive Care Unit, ICU, for lung cancer patients. The ideal result would be for this to benefit personalised healthcare and resource management in oncology.
+%\subsection{Aims and Objectives}
+%The main aim of this project is to build accurate and efficient machine learning models using data from the MIMIC dataset to enhance the prediction of the length of stay in the Intensive Care Unit, ICU, for lung cancer patients. The ideal result would be for this to benefit personalised healthcare and resource management in oncology.
 
-The main aims and objectives are the following:
-\begin{itemize}
-    \item Aim 1 - Extract the data from the MIMIC dataset to form a final dataset ready to be used to develop predictive models.
-	\begin{itemize}
-	\item Objective 1 - Determine the variables for selection 
-	\item Objective 2 - Setup the MIMIC database on PostgresSQL
-	\item Objective 3 - Extract the data
-	\item Objective 4 - Clean the data
-	\end{itemize}
-    \item Aim 2 - Train various predictive models.
-	\begin{itemize}
-	\item Objective 1 - Cross-validate 
-	\item Objective 2 - Impute the missing data
-	\item Objective 3 - Linear regression model
-	\item Objective 4 - Penalistation models
-	\item Objective 5 - Random forest
-	\end{itemize}
-    \item Aim 3 - Evaluate the models assessing the effectiveness of each. 
-	\begin{itemize}
-	\item Objective 1 - Calculate performance metrics
-	\item Objective 2 - Compare models
-	\item Objective 3 - Compare findings with other studies
-	\end{itemize}
-\end{itemize}
+%The main aims and objectives are the following:
+%\begin{itemize}
+   % \item Aim 1 - Extract the data from the MIMIC dataset to form a final dataset ready to be used to develop predictive models.
+	%\begin{itemize}
+	%\item Objective 1 - Determine the variables for selection 
+	%\item Objective 2 - Setup the MIMIC database on PostgresSQL
+	%\item Objective 3 - Extract the data
+	%\item Objective 4 - Clean the data
+	%\end{itemize}
+    %\item Aim 2 - Train various predictive models.
+	%\begin{itemize}
+	%\item Objective 1 - Cross-validate 
+	%\item Objective 2 - Impute the missing data
+	%\item Objective 3 - Linear regression model
+	%\item Objective 4 - Penalistation models
+	%\item Objective 5 - Random forest
+	%\end{itemize}
+    %\item Aim 3 - Evaluate the models assessing the effectiveness of each. 
+	%\begin{itemize}
+	%\item Objective 1 - Calculate performance metrics
+	%\item Objective 2 - Compare models
+	%\item Objective 3 - Compare findings with other studies
+	%\end{itemize}
+%\end{itemize}
 
 \subsection{Background to Lung Cancer and ICU Treatment}
 Cancer is a disease that involves the uncontrollable multiplication of malignant cells, in some cases forming tumours in organs or tissues. In the US, and many other countries around the world, cancer has become the leading cause of death, and in the US specifically it has been reported that around 39\% people will be diagnosed with any cancer in their lifetimes\cite{cancerCancerSite}. In 2025 it was reported that around 12\% of cancer cases were lung cancer cases\cite{cancer}. These statistics indicates that the volume of patients requiring ICU treatment may be significantly large and therefore the optimisation of length of stay analysis is key for adequate resource management and patient care planning. Lung cancer in particular describes the cancerous cell growth in the lungs and is regarded as a serious health issue for both the patient and healthcare systems worldwide.
@@ -256,13 +256,46 @@ The literature research also informs on the complexity of the models, namely the
 %\subsection{GitHub Repository}
 %A GitHub repository has been set up to back up files so that lost work can be retrieved in the event of unexpected technical issues. This will be updated throughout the course of the project.[cite github page]
 
+\subsection{Aims and Objectives}
+
+\subsubsection{Aim}
+
+The main aim of this project is to build accurate and efficient machine learning models using data from the MIMIC-IV dataset to enhance the prediction of the length of stay in the Intensive Care Unit, ICU, for lung cancer patients. The ideal result would be for these models to assist in the management of lung cancer patients in intensive care wards in terms of cost and effectiveness.
+
+\subsubsection{Objectives}
+
+The main objectives are the following:
+\begin{itemize}
+    \item Extract the data from the MIMIC dataset to form a final dataset ready to be used to develop predictive models.
+	%\begin{itemize}
+	%\item Objective 1 - Determine the variables for selection 
+	%\item Objective 2 - Setup the MIMIC database on PostgresSQL
+	%\item Objective 3 - Extract the data
+	%\item Objective 4 - Clean the data
+	%\end{itemize}
+    \item Train various predictive models via nested cross validation. The missing data imputation will occur within the cross validation process.
+	%\begin{itemize}
+	%\item Objective 1 - Cross-validate 
+	%\item Objective 2 - Impute the missing data
+	%\item Objective 3 - Linear regression model
+	%\item Objective 4 - Penalistation models
+	%\item Objective 5 - Random forest
+	%\end{itemize}
+    \item Evaluate the values of each model's performance metrics and variable importance and compare them against each other.
+	%\begin{itemize}
+	%\item Objective 1 - Calculate performance metrics
+	%\item Objective 2 - Compare models
+	%\item Objective 3 - Compare findings with other studies
+	%\end{itemize}
+\end{itemize}
+
 \newpage
 
 \section{Methods and Materials}
 
 \subsection{Variable Selection}
-Variables to use in the prediction models must be determined before any data extraction from the MIMIC-IV database can occur. The importance of choosing relevant variables is significant as this has a strong impact on the performance of the model. Therefore some prior knowledge on the key variables that affect lung cancer is needed, to obtain this it would be useful to draw on medical knowledge. In the absence of first hand medical knowledge some research on the variables used in previous studies must be examined. %A study with the same aim of prediction for the length of stay for lung cancer patients using the MIMIC-III database is found \cite{Alsinglawi123}.  It is not clear that any other study focuses primarily on prediction of length of stay for lung cancer patients, but the variables included here would be those that are explicitly useful for this prediction.
-They mention the methods of obtaining the variables they have included is a process of first considering clinical significance and then using a process of recursive feature elimination as a way of removing the less useful variables. The variables that remained are as listed: age, temperature, platelets, admission (specifically emergency), glucose, chloride, potassium, pulse oximetry, PTT, anion gap, respiratory rate, haemoglobin, troponin, calcium gluconate, haematocrit, tidal volume, diastolic, ondansetron, INR, sodium. Of these pulse oximetry, anion gap, respiratory rate, tidal volume and diastolic were not collected due to lack of data. The variables sex, ethnicity and health insurance were also included with the reason that they may be clinically significant. 
+Variables to use in the prediction models must be determined before any data extraction from the MIMIC-IV database can occur. The importance of choosing relevant variables is significant as this has a strong impact on the performance of the model. Therefore some prior knowledge on the key variables that affect lung cancer is needed, to obtain this it would be useful to draw on medical knowledge. In the absence of first hand medical knowledge some research on the variables used in previous studies must be examined.   %It is not clear that any other study focuses primarily on prediction of length of stay for lung cancer patients, but the variables included here would be those that are explicitly useful for this prediction.
+A study with the same aim of prediction for the length of stay for lung cancer patients using the MIMIC-III database is found \cite{Alsinglawi123}. They mention the methods of obtaining the variables they have included is a process of first considering clinical significance and then using a process of recursive feature elimination as a way of removing the less useful variables. The variables that remained are as listed: age, temperature, platelets, admission (specifically emergency), glucose, chloride, potassium, pulse oximetry, PTT, anion gap, respiratory rate, haemoglobin, troponin, calcium gluconate, haematocrit, tidal volume, diastolic, ondansetron, INR, sodium. Of these pulse oximetry, anion gap, respiratory rate, tidal volume and diastolic were not collected due to lack of data. The variables sex, ethnicity and health insurance were also included with the reason that they may be clinically significant. 
 
 %Whether a patient leaves the ICU through discharge or through death is important to consider as a prediction model that doesn't take this into account may predict those who end up dying having a much longer length of stay than they do based on the data that indicates that they may have poor health.
 
@@ -286,6 +319,8 @@ The patient must be an adult, as in over 18, at the time of their admission into
 The patient must have at least one ICU admission within their hospital stay.
 
 The patient must have a relevant ICD-9 or ICD-10 code that indicates a diagnosis of lung cancer.
+
+The patients' stay must be the first in their admission.
 
 \subsection{Data Extraction}
 Now that the MIMIC database has been setup the data for the determined variables can be extracted.
@@ -443,42 +478,43 @@ SQL and R programming [Ref] were used to handle data cleaning.
 
 %The study treats each ICU stay spaced out by a significant amount of time.
 
-The ICU length of stay value is defined by the length of stay of the first ICU stays and the duration of any readmissions that occur within an hour of prior discharge. An admission occuring outside a day between prior discharge and the start of admission is considered a seperate admission in the data. An extra variable is created, indicating the number of previous ICU stays that have occured within each admission. 
+Some patients had more than one ICU admissions in their hospital stay, i.e. they were discharged and readmitted. The subsequent ICU stays cannot be included within the data as this would violate the assumption of independence\cite{Pfeifer2010} which contributes to bias in the prediction models. Including them would also cause some data leakage across the randomly split cross validation folds.
+
+%The ICU length of stay value is defined by the length of stay of the first ICU stays and the duration of any readmissions that occur within an hour of prior discharge. An admission occuring outside a day between prior discharge and the start of admission is considered a seperate admission in the data. An extra variable is created, indicating the number of previous ICU stays that have occured within each admission. 
 %even though these both come from the same patient. An extra variable is created, indicating the number of previous ICU stays.
 
-Some of the categorical variables, extracted from the dataset, had many specific levels with some including an insufficiently low amount of individuals. For example the ethnicity variable was split down into many groups, some caputuring only a few individuals. Each group may be incorporated into a more broad ethnic umbrellas. For example, white - eastern/european and white - russian are recognised as different ethnic groups in MIMIC, but both can be included within a white ethnicity category. Individuals from ethnic groups that don't fit into a specific category are placed in a category labelled ``Other". Admission type categories were also aggregated.
+Some of the categorical variables, extracted from the dataset, had many specific levels with some including an insufficiently low amount of individuals. For example the ethnicity variable was split down into many groups, some caputuring only a few individuals. Each group may be incorporated into a more broad ethnic umbrellas. For example, white - eastern/european and white - russian are recognised as different ethnic groups in MIMIC, but both can be included within a white ethnicity category. Individuals from ethnic groups that don't fit into a specific category are placed in a category labelled ``Other". Admission type categories were also aggregated. Any missing data in a categorical variable was placed into its own missing data group.
 
 %The limitations of this are apparent in that the individuals in this group have a significant amount of variance in their ethnic characteristics which is not helpful when using ethnicity as a predictor in a prediction model. 
 
 %Also the aggregation of groups in this way reduces the validity of the true impact of ethnicity on a patient's length of stay. It is important to aggregate the categories in this way for personal security purposes, if a patient is known to be the only patient in a certain category with a lung cancer intensive care stay they would be easily identifiable. 
-Any missing data in a categorical variable was placed into its own missing data group.
+
 
 \subsection{Missing Values}
 Missing values in the data act as a roadblock to meaningful analysis. Many machine learning models require the input data to be complete for them to work, and their performance is greatly improved when the missingness is remedied so that the resulting study population matches the true population distribution as closely as possible\cite{Hasan2021}.
 
 \subsubsection{Missing Data Types}
-There are three distinct types of missing data, missing at random (MAR), missing not at random (MNAR) and; missing completely at random (MCAR). Data is considered MCAR when the missingness of the data is random. This differs from MNAR which describes missing data that depends on the context behind the missing value. For example people are less likely to disclose their substance use due to societal judgement and/or its legality. And finally MAR is dependent on data from other variables\cite{Yan2025}. The importance of these distinctions lie in the determination of the choice of imputation or deletion method of dealing with this missingness.
+There are three distinct types of missing data, missing at random (MAR), missing not at random (MNAR) and; missing completely at random (MCAR). Data is considered MCAR when the missingness of the data is random\cite{Mack2018}. This differs from MNAR which describes missing data that depends on the context behind the missing value. For example people are less likely to disclose their substance use due to societal judgement and/or its legality. And finally MAR is dependent on data from other variables\cite{Yan2025}. The importance of these distinctions lie in the determination of the choice of imputation or deletion method of dealing with this missingness.
 
-Dealing with missing data can involve the complete case analysis omission of records or imputation. Although omission is the simpler method, the resulting model is subject to bias as there due to the possibility for certain groups to have missing data, of the type MAR or MNAR, in some variables. Therefore, omission of these data could potentially lead to a misrepresentative study population which in turn leads to the aforementioned bias in the prediction models\cite{Peng2023}.
+Dealing with missing data can involve the complete case analysis omission of records or imputation. Although omission is the simpler method, the resulting model is subject to bias as there due to the possibility for certain groups to have missing data, of the type MAR or MNAR, in some variables\cite{Kang2013}. Therefore, omission of these data could potentially lead to a misrepresentative study population which in turn leads to the aforementioned bias in the prediction models\cite{Peng2023}.
 
 There are some forms of imputation that are a much more valid approach for minimising bias. Imputation is, in simplistic terms, the filling in of missing data, as an approximation, to provide a full dataset for analysis. The imputed data is based on the statistical characteristics of the observed data such as its distribution. 
 
 %For imputing missing data on a normal distribution if the a variable's distribution is normal, the imputed data should lie somewhere on the same normal distribution with the imputation method mapping the data in this way. 
 
-\subsubsection{Dummy Coding}
-Categorical data are not handled well by machine learning models as they are designed to make predictions from data in numerical form. This is where dummy coding comes in. The idea, to put it briefly, is to assign binary values as an indication as to which category the record falls into. For example if a categorical variable has four categories then three separate columns would be created. Let's say a patients admission type is urgent, then the value in the urgent admission column would be 1 and in all other admission type columns the value would be 0. category in that variable is urgent admission then every admission record included in this category would receive a value of 1 and the others a value of 0. As would be the same for all but one of the other categories in that variable. The one variable this is not the same for is the variable that isn't given its own column. To determine if the patient is in this categorical group each of the other categories, which all have a column, are set to 0. In this way dummy coding differentiates from a similar method of converting categorical data to numerical known as one-hot encoding.
+%\subsubsection{Dummy Coding}
+%Categorical data are not handled well by machine learning models as they are designed to make predictions from data in numerical form. This is where dummy coding comes in. The idea, to put it briefly, is to assign binary values as an indication as to which category the record falls into. For example if a categorical variable has four categories then three separate columns would be created. Let's say a patients admission type is urgent, then the value in the urgent admission column would be 1 and in all other admission type columns the value would be 0. category in that variable is urgent admission then every admission record included in this category would receive a value of 1 and the others a value of 0. As would be the same for all but one of the other categories in that variable. The one variable this is not the same for is the variable that isn't given its own column. To determine if the patient is in this categorical group each of the other categories, which all have a column, are set to 0. In this way dummy coding differentiates from a similar method of converting categorical data to numerical known as one-hot encoding.
 
-Dummy coding is also helpful for eliminating the need to impute missing categorical data. A missing data category can created for use in the coding process.
+%Dummy coding is also helpful for eliminating the need to impute missing categorical data. A missing data category can created for use in the coding process.
 
 \subsubsection{Single Imputation Methods}
 Single imputation is a basic imputation method that imputes the missing data with single estimated values. It is most important to note that these methods only impute with one iteration. One way to singularly impute the missing data is to replace it with a summary statistic, such as the mean or median for quantitative variables or mode for qualitative variables\cite{Dettori2018}. For datasets with a significant amount of missing data this imputation method is less suitable and not recommended for producing robust estimates as the variance of the resulting imputed distribution would almost certainly be a poor estimation of the variance of the true distribution. 
 
 Other methods offer an improvement to this simplistic form of imputation. The hot deck method matches individuals based on the similarity of their characteristics\cite{Andridge2010}, and uses this information to impute the missing data in the dataset. The individual with the missing data is labelled the recipient and the individual with the data used to impute the missing value is labelled the donor. How the donor is selected is dictated by the type of hot deck imputation \cite{Georgiadis2025}. As opposed to imputing all missing data with the same value, methods such as hot deck or regression give imputations that differ for each missing value depending on the characteristics of their records. 
 
-Regression imputation uses data from other variables and imputes with regression techniques, such as those used to predict the length of stay in this study. It is worth noting that both regression and hot deck require the variables used in the imputation to be fully-observed. Therefore, these methods are less effective for imputing datasets that contain a lot of missing data. 
-
-Single imputation is not the optimal method when missingness in the dataset is more prevalent and therefore advanced methods should be considered.
-
+Regression imputation uses data from other variables and imputes with regression techniques. It is worth noting that for the regression and hot deck methods the accuracy of the imputations relies on the availability of observed data in the dataset. Single imputation is not the optimal method when missingness in the dataset is more prevalent and therefore advanced methods should be considered.\cite{Woods2021}
+%, such as those used to predict the length of stay in this study. 
+ 
 \subsubsection{Multiple Imputation and MICE}
 Multiple imputation improves on single imputation in several ways with the use of multiple imputed values for the missing data and allowing for every variable, including those with missing data, to be used in the imputation process\cite{White2010}. MI works without modification if the missing data included in the dataset are either MAR or MCAR. For data that is MNAR sometimes with the appropriate adjustments to the data multiple imputation methods are suitable. 
 
@@ -542,28 +578,28 @@ Since the key goal in improving a linear regression model is minimising the erro
 With \(i\) representing an individual record summing to the sample size of \(n\) and \(j\) representing a predictor variable among \(p\) predictor variables. So the function to build the model within the code would find the  \(\beta\) values to minimise this equation, these\(\beta\) values can then be used in the original equation to predict the dependent \(y\) variable.
 
 
-\subsubsection{LASSO and Ridge Regression}
-LASSO and ridge regression models introduce a \(\beta\) coefficient penalisation term which minimises their value towards zero to reduce overfitting in the model. When the model is overfitting it is trained too well to make predictions on the training data. This is a problem because any new data used to make predictions would produce predictions that may be far from equivalent to the actual values. These two regression models both introduce a \(\lambda\) term which needs to be tuned carefully to find a model that reduces overfitting, improves prediction and does this without creating an overly complex model. The equation for these two models is very similar to the equation for the OLS. For ridge regression the equation is as follows.
+%\subsubsection{LASSO and Ridge Regression}
+%LASSO and ridge regression models introduce a \(\beta\) coefficient penalisation term which minimises their value towards zero to reduce overfitting in the model. When the model is overfitting it is trained too well to make predictions on the training data. This is a problem because any new data used to make predictions would produce predictions that may be far from equivalent to the actual values. These two regression models both introduce a \(\lambda\) term which needs to be tuned carefully to find a model that reduces overfitting, improves prediction and does this without creating an overly complex model. The equation for these two models is very similar to the equation for the OLS. For ridge regression the equation is as follows.
 
-\[RSS + Penalty = \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_jx_{ij})^2 + \lambda\sum_{j=1}^{p}\beta_j^2\]
+%\[RSS + Penalty = \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_jx_{ij})^2 + \lambda\sum_{j=1}^{p}\beta_j^2\]
 
-And the LASSO equation is written below.
+%And the LASSO equation is written below.
 
-\[RSS + Penalty = \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_jx_{ij})^2 + \lambda\sum_{j=1}^{p}|\beta|\]
+%\[RSS + Penalty = \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_jx_{ij})^2 + \lambda\sum_{j=1}^{p}|\beta|\]
 
-In both these equations \(\lambda \in [0, \infty)\).
+%In both these equations \(\lambda \in [0, \infty)\).
 
-Here we see the difference in the two models and how they are both linked to OLS. Essentially when the value of \(\lambda\) is zero there is no penality so you are left with the minimisation of the RSS alone and an equation for the OLS with the \(\beta\) values being the same as they are in this model. 
+%Here we see the difference in the two models and how they are both linked to OLS. Essentially when the value of \(\lambda\) is zero there is no penality so you are left with the minimisation of the RSS alone and an equation for the OLS %with the \(\beta\) values being the same as they are in this model. 
 
-Plotting the contours of the error and the constraint regions [datasklr cite] help to visualise how the \(\beta\) coefficients are pushed to zero with these methods.
+%Plotting the contours of the error and the constraint regions [datasklr cite] help to visualise how the \(\beta\) coefficients are pushed to zero with these methods.
 
-\begin{center}
-\includegraphics[width = 150mm, scale = 0.75]{penalised models graphs}
-\end{center}
+%\begin{center}
+%\includegraphics[width = 150mm, scale = 0.75]{penalised models graphs}
+%\end{center}
 
-So what can be seen here from the three penalisation model graphs are three differing shapes for the constraint regions. The ellipses represent the contours of the RSS values away from the OLS. The constraint regions will increase in size as \(\lambda \to 0\) which would bring the \(\beta\) values to their OLS values. However, if  \(\lambda\)  does not equal zero then the constraint shrinks along with the \(\beta\) values as they are evaluated at the point where the RSS + penalty contours intersect with the constraint region. The reason why LASSO pushes some coefficients to zero is shown in these plots. Because of its diamond shape there is a possibility that the contours intersect with the constraint region on the axes. This is not possible with ridge regression since in OLS no coefficients have zero values and therefore the contours will not intersect the circular shape at the axes. The third plot from the right shows the constraint region for an elastic net which is the middle ground between LASSO and ridge regression. Here the coefficients may get pushed quite close to zero but will never reach it.
+%So what can be seen here from the three penalisation model graphs are three differing shapes for the constraint regions. The ellipses represent the contours of the RSS values away from the OLS. The constraint regions will increase in size %as \(\lambda \to 0\) which would bring the \(\beta\) values to their OLS values. However, if  \(\lambda\)  does not equal zero then the constraint shrinks along with the \(\beta\) values as they are evaluated at the point where the RSS + %penalty contours intersect with the constraint region. The reason why LASSO pushes some coefficients to zero is shown in these plots. Because of its diamond shape there is a possibility that the contours intersect with the constraint %region on the axes. This is not possible with ridge regression since in OLS no coefficients have zero values and therefore the contours will not intersect the circular shape at the axes. The third plot from the right shows the constraint %region for an elastic net which is the middle ground between LASSO and ridge regression. Here the coefficients may get pushed quite close to zero but will never reach it.
 
-The plots show only a relationship between a dependent variable and two independent variables, hence the ability to plot this on an x-y plane. For more than two independent variables the plots get more complex and include further dimensions so they are very tricky to display on paper
+%The plots show only a relationship between a dependent variable and two independent variables, hence the ability to plot this on an x-y plane. For more than two independent variables the plots get more complex and include further %dimensions so they are very tricky to display on paper
 
 \subsubsection{Random Forest}
 To explain the random forest method, the concept of a classification and regression decision tree (CART) must be established first\cite{Ibrahim2023}. At the beginning of constructing a decision tree \(100\%\) of the data constitutes what is labelled the root node\cite{SinghKushwah2022}. The root is split into two groups/child nodes, according to an attribute of one independent variable\cite{Ishwaran2015}, so that the overall mean squared value is optimally minimised\cite{Kitchin2020} . The splitting continues until a stopping point is reached. This may be because the mean squared error minimisation offers insignificant improvements or when the process has concluded in a predetermined maximum number of splits. As a result the data in the terminal nodes should have a significant level of homogeniety. Each terminal node includes a subset of the overall population wherein the mean for the values of the target variable constitutes their predicted value \cite{SpringerSeries}. Therefore, when evaluating the model, the test data is fed into the tree and their predictions are determined according to which terminal node they fall into. The evaluation metric can then be calculated using these predictions in comparison to the actual values.
@@ -635,20 +671,29 @@ A simple k-fold cross-validation is prone to some bias. A way to reduce this bia
 \subsubsection{Cross Validation to Imputation Pipeline}
 To evaluate the performance of the models it's important to consider the order of pre-processing (imputation) and cross validation. The order is important for reducing data leakage\cite{Dataleakage}, which introduces optimistically biased predictions of the observed data causing the reduction of the suitability for use of the model to make predictions on unseen data.
 
-By imputing first, the data is imputed only once, so any data used in validation affects the way in which the missing data is imputed thereby leading to a significant amount of data leakage. In comparison by using an imputation within each cross validation fold approach the data leakage is nullified because the data from the test dataset never affects the imputation of the data used to train the model. So in terms of avoiding data leakage the order of imputation within the cross validation would be preferred; the evaluation that imputation within cross validation outputs is less optimistically bias and closer to the true evaluation to the model's ability to predict accurately on unseen data. 
+By imputing first, the data is imputed only once, so any data used in validation affects the way in which the missing data is imputed thereby leading to a significant amount of data leakage. In comparison by using an imputation within each cross validation fold approach the data leakage is reduced because the data from the test dataset never affects the imputation of the data used to train the model. So in terms of avoiding data leakage the order of imputation within the cross validation is preferable; the evaluation that imputation within cross validation outputs is less optimistically bias and closer to the true evaluation to the model's ability to predict accurately on unseen data. 
 
-Imputation before cross validation before cross validation results in a lower variability whereas imputation within cross validation results in a higher variability. In a validation process there a several sources that affect the level of variance. With the core structure of the two approaches in question the only source of variance that separates the two is how the imputation is applied. Imputing the whole dataset before it's split up into folds means that the variance gained from imputation is only appended to the total one time. In contrast, for the opposing approach, imputation is conducted within each fold and therefore the total variance will be higher in this scenario. A lower variability in the prediction model leads to more stable predictions as the confidence interval is low. In the case of ICU length of stay, a low variability would therfore predict stays of similar lengths with very little room for outliers. High variability introduces a greater amount of noise and is much more well accounted for picking up on outliers. This is beneficial for predicting the nature of ICU length of stay as there can be stays that last condsiderably longer than predicted unless high variability is accounted for. In some instances low variability would be the more suitable option but due to the data leakage and the context the order of imputation within cross validation with its high variability is favoured.
+%Imputation before cross validation results in a lower variability whereas imputation within cross validation results in a higher variability. In a validation process there a several sources that affect the level of variance. With the core structure of the two approaches in question the only source of variance that separates the two is how the imputation is applied. Imputing the whole dataset before it's split up into folds means that the variance gained from imputation is only appended to the total one time. In contrast, for the opposing approach, imputation is conducted within each fold and therefore the total variance will be higher in this scenario. A lower variability in the prediction model leads to more stable predictions as the confidence interval is low. In the case of ICU length of stay, a low variability would therfore predict stays of similar lengths with very little room for outliers. High variability introduces a greater amount of noise and is much more well accounted for picking up on outliers. This is beneficial for predicting the nature of ICU length of stay as there can be stays that last condsiderably longer than predicted unless high variability is accounted for. In some instances low variability would be the more suitable option but due to the data leakage and the context the order of imputation within cross validation with its high variability is favoured.
 
 So with the decision made that the order of imputation within cross validation as the more suitable choice a visualisation is useful to properly show how this works.
 
 \includegraphics[width = 150mm, scale = 0.75]{imputedcv11}
 
-This visualisation shows how to implement the MICE imputation process within one cross validation fold to produce a value of the validation metric. The cross validation fold with missing data is imputed five separate times. The train set is imputed first, then the corresponding test set is imputed by using the imputer devepoloped when imputing the train set. Since the order of the validation is imputation within cross validation each imputed set of train and test sets should be validated against each other. This is shown in the figure by the various arrows representing the many-to-many validation to produce five validation metrics values, these are averaged to obtain the value of the validation metric for this fold. This value is used amongst the other values of the fold validation folds to produce the final validation value of the final model.
+This visualisation shows how to implement the MICE imputation process within one cross validation fold to produce a value of the validation metric. The cross validation fold with missing data is imputed five separate times. The train set is imputed first, then the corresponding test set is imputed by using the imputer devepoloped when imputing the train set. Since the order of the validation is imputation within cross validation each imputed set of train and test sets should be validated against each other. This is shown in the figure by multiple arrows representing validation across imputed train–test pairs. Each imputed dataset produces a validation metric, and these metrics are averaged to obtain a single validation value for each fold. 
+
+%These fold-level values are then averaged to produce the final validation estimate of the model.
+
+%This is shown in the figure by the various arrows representing the many-to-many validation to produce five validation metrics values, these are averaged to obtain the value of the validation metric for this fold. This value is used amongst the other values of the fold validation folds to produce the final validation value of the final model.
 
 \includegraphics[width = 150mm, scale = 0.75]{cv7}
 
-This figure visualises the inner loop of nested cross-validation which is the result of the decision to add a layer of cross validation within each fold. As shown, each imputed train dataset is taken and split into k-folds, just as in the outer loop. The process then plays out as a standard k-fold cross validation as is detailed above. This repeats in an iterative fashion as it cycles through values of the hyperparamer, which this inner loop attempts to tune.
+%This figure visualises the inner loop of nested cross-validation which is the result of the decision to add a layer of cross validation within each fold. As shown, each imputed train dataset is taken and split into k-folds, just as in the outer loop. The process then plays out as a standard k-fold cross validation as is detailed above. This repeats in an iterative fashion as it cycles through values of the hyperparamer, which this inner loop attempts to tune.
 
+%This figure details how the outer fold is realised. Firstly the incomplete data set is split into 5 folds. In each fold a seperate section is used as a test set and train set. The validation within the fold is carried out just as in the previous diagram. the 5 resulting validation metrics are averaged to give the final validation metric for the model.
+
+%The incomplete dataset is split into five folds with each fold's data split in two with four fiths of the data consisting the training set and the rest used as the test set. Within each fold the model evaluation is carried out as detailed in the previous figure. The five validation metrics obtained from this are averaged to obtain the final validation metric.
+
+The incomplete dataset is partitioned into five folds. In each iteration, one fold is held out as the test set, while the remaining four folds are used as the training set. Within each outer fold, the full modelling pipeline (as described in the previous figure) is carried out, including any preprocessing, imputation, and model fitting procedures. This produces one validation metric per fold. The five fold-level validation metrics are then averaged to obtain the final estimate of model performance.
 
 %To properly assess the performance of a model that is trained with data that has missing values needs to go through both a cross validation and imputation step. It is important to consider the details of the process, mainly deciding the order of the application of the pre-processing imputation and the validation methods. The reason this is so important is due to the need to reduce data leakage in the model. This particular type of leakage is named test-to-train leakage and it describes the idea that if imputation is done before the dataset is split into k-folds there will be leakage because in the process of imputation the test data will be used to affect the imputed data in the training dataset, which is a problem because the test set should be unseen data that has no interference in the training set. So therefore to avoid this type of data leakage it would be advisable to impute the train and test set separately within each cross-validated fold.
 
