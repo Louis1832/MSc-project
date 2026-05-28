@@ -8,10 +8,12 @@ library(rpart.plot)
 
 set.seed(52)
 sales_df <- data.frame(
-  Price = round(rlnorm(100), 2)
+  Price = round(rlnorm(100), 2
+                )
 )
 
-sales_df$Sales <- (12 * sales_df$Price^(2/3) + 4) + round(rlnorm(100, sdlog = 2))
+sales_df$Sales <- (12 * sales_df$Price^(2/3) + 4) + round(rlnorm(100, sdlog = 2
+                                                                 ))
 
 model <- rpart(Sales ~ Price, data = sales_df, method = "anova")
 
