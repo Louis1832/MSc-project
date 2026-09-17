@@ -1,0 +1,961 @@
+\documentclass[11pt]{article}
+\usepackage{setspace}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+\usepackage{ragged2e}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{fontspec}
+\usepackage{moresize}
+\usepackage{float}
+\usepackage[table]{xcolor}
+\usepackage[nottoc, notbib]{tocbibind}
+\usepackage[left=2.54cm, right=2.54cm, top=2.54cm, bottom=2.54cm]{geometry}
+\usepackage[acronym, toc]{glossaries}
+\makenoidxglossaries
+\newacronym{los}{LOS}{Length of Stay}
+\newacronym{us}{US}{United States}
+\newacronym{icu}{ICU}{Intensive Care Uniit}
+\newacronym{mimic}{MIMIC}{Medical Information Mart for Intensive Care}
+\newacronym{citi}{CITI}{Collaborative Institutional Training Initiative}
+\newacronym{ols}{OLS}{Ordinary Least Squares}
+\newacronym{glm}{GLM}{Generalised Linear Model}
+\newacronym{ph}{PH}{Proportional Hazards}
+\newacronym{rmspe}{RMSPE}{Root Mean Squared Percentage Error}
+\newacronym{mape}{MAPE}{Mean Absolute Percentage Error}
+\newacronym{auc}{AUC}{Area Under the Curve}
+\newacronym{xgboost}{XGBoost}{eXtreme Gradient Boosting}
+\newacronym{auroc}{AUROC}{Area Under the Receiver Operating Characteristic}
+\newacronym{auprc}{AUPRC}{Area Under the Precision-Recall Curve}
+\newacronym{rmse}{RMSE}{Root Mean Squared Error}
+\newacronym{pdms}{PDMS}{Patient Data Management System}
+\newacronym{ed}{ED}{Emergency Department}
+\newacronym{ptt}{PTT}{Partial Thromboplastin Time}
+\newacronym{inr}{INR}{International Normalised Ratio}
+\newacronym{sql}{SQL}{Structured Query Language}
+\newacronym{icd}{ICD}{International Classification of Diseases}
+\newacronym{csv}{CSV}{Comma-Separated Values}
+\newacronym{ku/l}{ku/L}{Kilounits per Litre}
+\newacronym{meq/l}{mEq/L}{Milliequivalents per Litre}
+\newacronym{mg/dl}{mg/dL}{Milligrams per Decilitre}
+\newacronym{g/dl}{g/dL}{Grams per Decilitre}
+\newacronym{ng/l}{ng/L}{Nanograms per Litre}
+\newacronym{mar}{MAR}{Missing at Random}
+\newacronym{mnar}{MNAR}{Missing Not at Random}
+\newacronym{mcar}{MCAR}{Missing Completely at Random}
+\newacronym{mice}{MICE}{Multivariate Imputation by Chained Equations}
+\newacronym{pmm}{PMM}{Predictive Mean Matching}
+\newacronym{cart}{CART}{Classification and Regression Decision Tree}
+\newacronym{mae}{MAE}{Mean Absolute Error}
+\newacronym{mse}{MSE}{Mean Squared Error}
+\newacronym{sd}{SD}{Standard Deviation}
+\newacronym{nice}{NICE}{National Institute for Health and Care Excellence}
+\newacronym{mi}{MI}{Multiple Imputation}
+\newacronym{smote}{SMOTE}{Synthetic Minority Over-sampling Technique}
+\newacronym{adasyn}{ADASYN}{Adaptive Synthetic Sampling Approach for Imbalanced Learning}
+
+\newcolumntype{L}[1]{>{\RaggedRight\centering\hyphenchar\font=`\-\arraybackslash}p{#1}}
+\hypersetup{
+    colorlinks,
+    linkcolor = {red!50!black},
+    citecolor = {blue!50!black},
+    urlcolor = {blue!80!black}
+}
+\setstretch{1.5}
+\usepackage[
+backend=biber,
+style=numeric,
+sorting=none
+]{biblatex}
+\addbibresource{project_references_latex.bib}
+\bibliography{references}
+\setmainfont{Arial}
+\newfontfamily\seriffont{Times New Roman}
+\newcounter{savepage}
+
+\begin{document}
+\pagenumbering{roman}
+
+\newpage
+
+
+\begin{abstract}
+
+\textbf{Objective:} This study aims to train prediction models to predict the length of stay for lung cancer patients in the \gls{icu}. Two models will be trained, evaluated and compared for their performance and the variable importance.
+
+\textbf{Methods:} Data was sourced from the \gls{mimic}-IV dataset which consists of hospital data, including emergency department data, from the Beth Israel Deaconess Medical Center in Boston, Massachusetts. Two regression models were developed, gamma \gls{glm} and random forest. The models were evaluated by the \gls{rmse}, the \gls{mae} and the R\(^2\) statistics, via 5-fold cross validation using \gls{mice} to impute the missing values in the data. The variable importance was also investigated for the two models.
+
+\textbf{Results:} 2115 patient records in the \gls{mimic}-IV database met the eligibility criteria and were included in the study. Out of the 12 variables with missing data in the dataset, 4 were omitted due to exceedingly high proportions of missingness. The mechanism of missingness was investigated for the remaining 8 variables each of which showed plausibility of \gls{mar} and excluded the possibility of \gls{mcar}. Both models output very similar performance values for the \gls{rmse}, \gls{mae} and R\(^2\) after 5-fold cross validation. The variable importance graphs showed differing results for the two models, although both showed the calcium gluconate variable to be the most important.
+
+\textbf{Conclusion:} Both models demonstrated poor performance and neither of the models demonstrated a clear predictive advantage over one another. Neither models would realistically be realiable for real world ward management, but if one were to be recommended it would be the gamma \gls{glm} as it is the more interpretable of the two. There were several limitations that reduced the models' predictive performance. In regards to missingness, a significant amount of missing data obstructed the models from providing robust predictions. The plausibility of \gls{mnar} could not be ruled out, therefore the quality of the imputations was unknown. Further limitations were observed, adressing these in future study may produce models with a higher level of predictive performance.
+    
+\end{abstract}
+
+\newpage
+
+\renewcommand{\abstractname}{Acknowledgements}
+
+\begin{abstract}
+ 
+I would like to express my appreciation to Vaish Balaji, Orlagh Carroll and Ananya Malhotra for providing me with the invaluable expertise and guidance that I have utilised throughout my MSc project and will continue to benefit from in my future endeavours. Another thank you to Jonathan Wong for providing me with the initial concept that formed the objective for this project. 
+
+I am grateful for the work that was put into the collection and composition of the open access \gls{mimic}-IV database, which aided my study massively.
+
+I would also like to thank the programme supervisors, Stephane Hue, Damien Tully an Keith Tomlin, and to all of the professors that taught me throughout the duration of this MSc.
+
+Finally, I would like to thank my family and friends for their immense support throughout the duration of completing this project and MSc course.
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+\pagebreak
+
+
+  \listoffigures
+  \cleardoublepage
+ 
+  \listoftables
+
+\cleardoublepage
+
+\clearpage
+
+\printnoidxglossary[type=\acronymtype, title={List of Abbreviations}]
+
+\clearpage
+
+
+\newpage
+
+\setcounter{savepage}{\value{page}}
+\pagenumbering{arabic}
+\section{Introduction}
+
+\subsection{Background to Lung Cancer and ICU Treatment}
+Cancer is a disease that is defined by the uncontrollable multiplication of malignant cells, in some cases forming tumours in organs or tissues. In the \gls{us}, and many other countries around the world, cancer has become the leading cause of death, and in the \gls{us} specifically it has been reported that approximately 39\% people will be diagnosed with any cancer in their lifetimes\cite{cancerCancerSite}. In 2025 it was reported that approximately 12\% of cancer cases were lung cancer cases\cite{cancer}. These statistics indicate that the volume of patients requiring \gls{icu} treatment may be significantly large and therefore the optimisation of \gls{los} analysis is key for adequate resource management and patient care planning. Lung cancer in particular describes the cancerous cell growth in the lungs and is regarded as a serious health issue for both the patient and healthcare systems worldwide.
+
+As of Joohyn Park., et al's 2019 report\cite{Park2019}, the mean annual health care expenditure for a lung cancer patient in the \gls{us} is \$35,141. This was significantly higher than the 4 most common cancer types that were included and approximately 8-9 times as high for a cancer free patient, \$4,484. These numbers point towards the extent of how significant the burden of lung cancer is on the \gls{us} healthcare system. They also report that lung cancer tends to be diagnosed at more advanced stages so the survival duration is short. A separate report notes the estimated 5 year survival rate at 27\% as of 2025 \cite{cancer}. With a higher number of cases diagnosed at advanced stages, \gls{icu}s are expected to be required to administer treatment to an increasing number of patients\cite{Laporte2018}.
+
+The \gls{los} in an \gls{icu} ward is an important piece of information for clinicians to know and if a machine learning model could predict it accurately the model would be highly useful in improving the efficiency in the intensive care process. At the time of writing, although some machine learning predictions of \gls{icu} \gls{los} are being researched\cite{Zhang2024}\cite{Yuan2025}\cite{Zhao2026}\cite{Nguyen2026}, the majority of healthcare systems go by clinical judgement alone\cite{Mak2012}. One of the main reasons behind this stems from the lack of understanding regarding how to employ predictive machine learning models to effectively assist a clinician in key decision making.\cite{MachineLearningOpportunities} The lack of use of these methods in practice provides a rationale for conducting this type of study.
+
+\subsection{Machine Learning}
+
+\subsubsection{What is Machine Learning?}
+
+The advancement of computational power and access to large amounts of data has created an opening for the application of statistical techniques to develop machine learning algorithms to produce accurate and useful results. Machine learning works similarly to the human brain in that it takes input information and uses it to build a form of understanding of abstract concepts. Machine learning algorithms can learn from their input data to identify patterns for use in making predictions as an aid for real life decision making.
+
+A machine learning model relies heavily on the amount of input data, the sample size, and also the quality of said data\cite{Chen2019}. A larger sample size allows for a broader representation of trends in the data, while data quality determines the reliability and usefulness of the results.\cite{Johnson2017}
+
+There are many aspects of the input data that determine its quality: \begin{itemize}
+\item The completeness or, in other words, magnitude of missingness. 
+\item The number of predictor (independent) variables and whether they are relevant for the outcome being predicted.
+\item The degree to which the sample data is representative of and can be generalised to the wider population. A model trained on a representative sample can be applied more effectively on the wider population. 
+\item  Recency of data collection. Up to date records are more informative.
+\item Uniformity of data units.
+
+\end{itemize}
+
+\subsection{Intended Use}
+
+Due to factors such as an aging population, medical advancements and staffing shortages, \gls{icu}s are now greater utilised for severe medical conditions such as the complications that arise from diseases like lung cancer\cite{Halpern2016}. This raises a few challenges that a robust \gls{los} prediction could help to solve.
+
+It is imperative for hospital staff to have an understanding of bed availability so that they can manage the influx of new patients effectively. Knowing which beds may shortly become available helps ward managers plan ahead for incoming patients and provides an estimate of how many beds an \gls{icu} ward may need. 
+
+Accurate \gls{los} predictions could contribute to more informed forecasts for ward's operating cost. This information could support the development of more realistic budgets and resource allocation,  which could potentially reduce the likelihood of excessive spending or underfunding.
+
+At current clinicians do not use machine learning techniques to predict \gls{los} for lung cancer \gls{icu} patients. Their predictions or estimates primarily come down to clinical judgement. Therefore estimates may vary depending on a clinician's experience and familiarity to the patient. This prediction is also not an immediate priority for the clinician, they may have the most granular knowledge but they are more focused on administering the best possible treatment to their patients. Therefore a clinically significant machine learning prediction model could help as an aide for hospital staff to make applicable approximations of the \gls{los} for an individual patient\cite{DosSantos2025}.
+
+\subsection{The \gls{mimic} Database}
+\gls{mimic} is a large relational database that consists of deidentified data collated from thousands of admissions to the intensive care unit of the Beth Israel Deaconess Medical Centre in Boston, Massachusetts\cite{physionetMIMICIVV31}. 
+
+The most recent version of the \gls{mimic} database is \gls{mimic}-IV. It includes data collected from January 2008 to December 2022, which is an extension on the previous version, \gls{mimic}-III, which recorded data up to December 2012. Using the updated version should allow for greater relevance and accuracy of the prediction model.
+
+The database is split into four modules, the core data, the hospital data, the \gls{icu} data and the \gls{ed} data. For my study I have not included the data from the \gls{ed} module to prevent data leakage from timestamp discrepancies.
+
+Within the core module there are three tables to store the non-clinical data that can be used for linkage purposes; these are labeled admissions, patients and transfers. The hospital module is the largest, containing nineteen tables of administrative, medication and laboratory records. The \gls{icu} module includes continuous measurements and details of bedside interventions, however, this study only uses this module to determine the patient's \gls{los}.
+
+The \gls{mimic}-IV data was accessed after completing a short ethics course set up by the \gls{citi} online training programme\cite{physionetCITICourse}\cite{citiprogramTechEthics}.
+
+\subsection{Literature Review}
+
+This literature review aimed to find relevant peer-reviewed publications to compare with the findings of this study, and to inform on the existing research and the reported results found in this area. The initial search attempted to find lung cancer \gls{icu} \gls{los} machine learning prediction studies focusing on a population of adults over 18 that stated a result of predictive performance. A search with these parameters in PubMed found 5 results of which none were relevant. So the search parameters were broadened. The age restriction was dropped and so was the specifity of lung cancer, as in any \gls{icu} \gls{los} machine learning prediction study was considered. This search in PubMed produced 697 results of which 13 fit this criteria.
+
+Additionally, 1 publication was found through google scholar that fit all of the initial criteria. 
+
+{\seriffont
+{\small
+\renewcommand{\arraystretch}{1}
+\centering
+\begin{center}
+\setlength{\arrayrulewidth}{0.7mm}
+\begin{longtable}{ |L{2cm} | L{1cm} | L{4cm} | 
+ L{6cm} | L{2cm} |} 
+    \hline
+    \textbf{Author} & \textbf{Year} & \textbf{Prediction Model} & \textbf{Best Model}
+ & \textbf{Data Source} \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+    \hline
+    \endfirsthead
+
+\hline
+\textbf{Author} & \textbf{Year} & \textbf{Prediction Model} & \textbf{Best Model} 
+ & \textbf{Data Source} \\
+\hline
+\endhead
+  Ilona W.M.Verburg., et al \cite{Verburg2014} & 2014 & \gls{ols} regression, \gls{ols} regression truncated at 30 days, \gls{ols} regression log, \gls{glm} Gaussian, \gls{glm} poisson, \gls{glm} negative binomial, \gls{glm} Gamma, Cox \gls{ph} regression & \gls{ols} regression truncated at 30 days: R$^2$ - 0.208 (0.2001 to 0.215), \gls{rmspe} - 5.150 (5.061 to 5.239), \gls{mape} - 3.099 (3.053 to 3.144), Bias - 0.015 (-0.044 to 0.074) & \gls{nice}\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Qiuying Chen, et al \cite{Das2021}  & 2021 & Naive Bayes, Linear Regression, Decision Tree, Random Forest, Gradient Boosting Decision Tree & Random Forest: \gls{auc} - 0.991 (0.978 to 1.000) and 0.837 (0.766 to 0.908) in the training and validation datasets respectively &
+ Guangdong Provincial Cardiovascular Institute \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Khalid Alghatani., et al \cite{Alghatani2021} & 2021 & Linear Regression, Linear Discriminant Analysis, Random Forest, k-Nearest Neighbour, Support Vector Machine, \gls{xgboost}, Multivariate Linear Regression, Support Vector Regression & Random Forest &
+\gls{mimic}-III \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Longxiang Su., et al \cite{Relja2021}  & 2021 & Logistic Regression, Random Forest, \gls{xgboost} & Random Forest: \gls{auc} - 0.76 & 
+\gls{icu} unit of Peking Union Medical College Hospital \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Andrea Stieger., et al \cite{Stieger2025}  & 2025 & Logistic Regression, Random Forest, Stacked Learner, Gradient Boosting Machine, Neural Networks & Stacked Learner: \gls{auroc} - 0.94, \gls{auprc} - 0.62 &
+ Seoul National University Hospital\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Louise Y.Sun., et al \cite{Sun2020}  & 2020 & Logistic Regression & Short stay: c-statistic (0.78/ 0.71, derivation/validation), Long stay: c-statistic (0.85/0.78, derivation/validation) This essientially concludes the idea that the logistic regression model may help practictioners &
+ University of Ottawa Heart Institute\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Kan Wang., et al \cite{Zhang2022} & 2022 & Linear Regression, Naive Bayes, Random Forest, Support Vector Machine, \gls{xgboost} & \gls{xgboost}: \gls{auc} - 0.88 &
+ Wuhan Union Hospital\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Pepler PT., et al \cite{Pepler2012}  & 2012 & Poisson Log-linear, Regression Model & Logistic Regression - \gls{auc} 0.8507 &
+ Vermont Oxford Network\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Yucai Hong., et al \cite{Hong2020}  & 2020 & Multivariate Regression Model & Multivariate Regression Model: \gls{auc} - 0.848 &
+Tertiary Care Hospital in Yueqing City, Zheijiang Province\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Geert Meyfroidt., et al \cite{Meyfroidt2011} & 2011 & Logistic Regression, Decision Trees, Random Forest, Support Vector Machines, Gaussian Forest & Gaussian Processes: \gls{rmse} - 0.408, \gls{auc} - 0.758 &
+ MetaVision \gls{pdms} Database\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Waqar Aziz., et al \cite{Aziz2024} & 2024 & Random Forest, Gradient Boosting & Gradient Boosting: \gls{auc} - 0.7243 &
+ \gls{mimic}-IV-\gls{ed}\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+ \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Belal Alsingwali., et al \cite{Alsinglawi123} & 2022 & Random Forest, \gls{xgboost}, Logistic Regression & Random Forest: k-fold = 10 mean accuracy - 87.4\% &
+ \gls{mimic}-III\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Ha Na Cho., et al \cite{NaCho2025}  & 2025 & Linear Regression, Random Forest, Support Vector Machine, \gls{xgboost}, Their own developed model called SurgeryLSTM & SurgeryLSTM: R$^2$ - 0.86 followed by \gls{xgboost} - R$^2$ - 0.85 &
+University of California Irvine Health\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Taghi Khanijev., et al \cite{Khaniyev2028}  & 2025 & Logistic Regression, Decision Tree, Random Forest, Neural Networks & Random Forest: \gls{auc} - 0.824 &
+ \gls{mimic}-IV\\ 
+    \hline
+
+
+\caption[Literature review]{Previous work concerning building machine learning models to predict a patient's \gls{icu} \gls{los}}
+\label{tab:my_label}\\
+\end{longtable}
+\end{center}}}
+\normalsize
+
+From inspection of the table, it seems that the majority of these previous studies focus on building a model to predict via classification. In contrast, this study will define \gls{los} as a continuous variable rather than a categorical one in which case a regression approach will be adopted. Splitting the variable into categories can make results more interpretable and more simple to visualise but doing so comes at the cost of losing precise information\cite{Altman2006}. which may result in a loss of clinical usefulness of the predictions to make informed estimations on bed allocation and staffing needs.
+
+Most of the studies in the table compare multiple machine learning models. The model that appears as the strongest most frequently is random forest with \gls{xgboost}/gradient boost following close behind. These methods are therefore worth considering as a predictive application within the lung cancer \gls{los} context.
+
+Another observation from the literature is the frequent use of the \gls{mimic} database in the absence of locally sourced data. Which shows that \gls{mimic} is certainly a viable source of data. Additionally many older studies use \gls{mimic}-III, therefore, this study can benefit from the more recent \gls{mimic}-IV.
+
+The majority of these studies focus on building models for \gls{los} prediction in various health related contexts. There is only one study found in the literature review that particularly focuses on lung cancer \gls{icu} \gls{los} prediction\cite{Alsinglawi123}. This study used \gls{mimic}-III data to compare random forest, \gls{xgboost} and logistic regression. The selected variables from their study were adopted as candidate variables for this study, providing consistency with similar previous research while assessing these variables on the updated version of \gls{mimic}.   
+
+Since there is a scarcity of studies in this area, there is great benefit in further research to attempt to find a reliable and effective predictive model suitable for use in clinical settings.
+
+\subsection{Aims and Objectives}
+
+\subsubsection{Aim}
+
+The main aim of this project is to build accurate and efficient machine learning models using data from the \gls{mimic}-IV dataset to enhance the prediction of the \gls{los} in the \gls{icu}, for lung cancer patients. The ideal result would be for these models to assist in the management of lung cancer patients in intensive care wards in terms of cost and effectiveness.
+
+\subsubsection{Objectives}
+
+The main objectives are the following:
+\begin{itemize}
+    \item Extract the data from the \gls{mimic}-IV database to form a final dataset ready to be used to develop predictive models.
+    \item Train the random forest and gamma \gls{glm} predictive models via 5-fold cross validation. Missing data imputation will occur within the cross validation process.
+    \item Evaluate the values quantifying each model's performance and variable importance and compare them against each other.
+\end{itemize}
+
+\newpage
+
+\section{Methods and Materials}
+
+\subsection{Variable Selection}
+Variables to use in the prediction models were determined before any data extraction from the \gls{mimic}-IV database occured. The importance of choosing relevant variables is significant as this has a strong impact on the performance of the model. Therefore some prior knowledge on the key variables that affect lung cancer is beneficial, to obtain this it would be useful to draw on medical knowledge. In the absence of first hand medical knowledge some research on the variables used in previous studies were examined.  
+
+A study with the same aim of prediction for the \gls{los} for lung cancer patients using the \gls{mimic}-III database was identified \cite{Alsinglawi123}. Their variable selection process involved first considering clinical significance, followed by a recursive feature elimination to remove less informative variables. The variables that remained are as listed: age, temperature, platelets, admission type, glucose, chloride, potassium, pulse oximetry, \gls{ptt}, anion gap, respiratory rate, haemoglobin, troponin, calcium gluconate, haematocrit, tidal volume, diastolic, ondansetron, \gls{inr}, sodium. Of these pulse oximetry, anion gap, respiratory rate, tidal volume and diastolic were not collected due to lack of data and haematocrit was removed due to its significant association with the haemoglobin variable. The variables sex, ethnicity and health insurance were also included based on their potential clinical significance. 
+
+The target variable, \gls{los}, is to be treated as a continuous variable measured in days.
+
+\subsection{Database Management}
+PhysioNet\cite{PhysioNet} is a publishing platform that holds, among other things, de-identified biomedical and clinical data. pgAdmin 4 is a graphical user interface that can be used to interact with PostgreSQL, an open-source database system\cite{pgAdmin4}.
+
+In order for data to be extracted from the \gls{mimic} database, the data files from PhysioNet should be downloaded and exported into a database schema in pgAdmin 4.  From there the database can be queried with \gls{sql}\cite{SQL} commands for data extraction.
+
+To create the schema, i.e. the layout and structure of the database being created, an \gls{sql} script is run, specifically tailored for \gls{mimic}-IV, to construct empty tables ready for the data export process. The script was retrieved from a Github repository.\cite{SQLcode}
+
+After creating the empty database, the data files are prepared ready for export. Some data files were too large for pgAdmin to export in one process, therefore the larger data files were split into smaller parts with the use of the Windows powershell. Once larger data files had been split they were exported into their respective tables in the schema.
+
+\subsection{Eligibilty Criteria}
+
+To be included in the study patients must meet the following eligibility criteria.
+\begin{itemize}
+\item The patient must be an adult, over 18, at the time of their admission into hospital.
+
+\item The patient must have at least one \gls{icu} admission within their hospital stay.
+
+\item The patient must have a relevant \gls{icd}-9 or \gls{icd}-10 code that indicates a diagnosis of lung cancer.
+
+\item The patients' stay must be the first in their admission.
+\end{itemize}
+
+\subsection{Sample Size}
+
+To calculate the sufficient minimum sample size for a prediction model development with a continuous outcome the R\cite{R} package "pmsampsize" was used. The calculation was based on the mean and standard deviation of the outcome variable, a priori R\(^2\) value obtained from previous study and the number of candidate predictors, where a categorical variable has multiple candidates depending on the number of categories. The priori R\(^2\) value used for this calculation will be the R\(^2\) obtained in Ilona W.M. Vernberg et al's study focused on developing regression prediction methods for predicting \gls{icu} \gls{los}\cite{Verburg2014}. The priori R\(^2\) is valued at 0.2.
+
+\subsection{Data Extraction}
+Now that the \gls{mimic} database has been setup the data for the determined variables can be extracted.
+
+To obtain the cohort from \gls{mimic} for analysis, the \gls{icd}-10 \cite{ICD10}codes corresponding to the diagnosis of lung cancer are needed to identify the patients required for the study. \gls{icd}-10 codes represent various patient diagnoses in alphanumeric form, making it easier to record diagnostic data, thereby reducing the likelihood of incorrect entries. The \gls{icd}-10 codes that indicate a patient has lung cancer are the C34 codes, identifying a "Malignant neoplasm of bronchus and lung", or the C78.0 codes, identifying a "Secondary malignant neoplasm of lung". A secondary malignant neoplasm is a cancer that develops as a result of a previous cancer. Along with the \gls{icd}-10, \gls{mimic}-IV also uses \gls{icd}-9 to indentify health conditions. The \gls{icd}-9 codes that correspond to the lung cancer cases are the 162.9 codes. \gls{icd}-10 codelist is the updated version of the \gls{icd}-9. \gls{icd}-10 was introduced in 2015 and \gls{mimic}-IV was collected between 2008 and 2018, which is why both sets of codes appear.
+
+{\seriffont
+{\small
+\renewcommand{\arraystretch}{1}
+\centering
+\begin{center}
+\setlength{\arrayrulewidth}{0.7mm}
+\begin{longtable}{ | L{2cm} | L{3cm} | L{8cm} | } 
+    \hline
+    \textbf{\gls{icd} Coding System} & \textbf{\gls{icd} Code} & \textbf{Condition Description}  \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+    \hline
+    \endfirsthead
+
+\hline
+\textbf{\gls{icd} Coding System} & \textbf{\gls{icd} Code} & \textbf{Condition Description} \\
+\hline
+\endhead
+\gls{icd}-9 & 162.X & Malignant neoplasms of the trachea, bronchus and lung. I.e., cancer that originates in the lung  \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+\gls{icd}-10 & C34.X & Malignant neoplasms of the bronchus and lung  \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+\gls{icd}-10 & C78.0 & Secondary malignant neoplasm of lung. I.e., lung cancer that develops as a result of a previous cancer  \\ 
+    \hline
+\caption[\gls{icd} codes]{\gls{icd} codes to identify a lung cancer diagnosis}
+\label{tab:my_label}\\
+\end{longtable}
+\end{center}}}
+\normalsize
+
+Through pgAdmin 4, \gls{sql} queries were written to sift through the database to extract the desired data to form the final dataset.
+
+Similarly, to find data for each variable, \gls{sql} scripts were developed to create datasets for all eligible patients in the database. The resulting datasets were saved into \gls{csv} files and imported into a single R file where they were merged using a unique patient \gls{icu} identifier.
+
+\subsection{Covariates}
+
+To predict length of stay the model will need relevant data as its input. Data from variables of interest are collected, these are refered to as the covariates. The table below gives the list of covariates to extract from \gls{mimic}, selected for their use in relevant literature identified in the literature review section. 
+
+{\seriffont
+{\small
+\renewcommand{\arraystretch}{1}
+\centering
+\begin{center}
+\setlength{\arrayrulewidth}{0.7mm}
+\begin{longtable}{ |L{2cm} | L{2cm} | L{2cm} | 
+ L{7cm} |} 
+    \hline
+    \textbf{Variable Name} & \textbf{Unit of Measure} & \textbf{Data Type} & \textbf{Description} 
+ \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+    \hline
+    \endfirsthead
+
+\hline
+\textbf{Variable Name} & \textbf{Unit of Measure} & \textbf{Data Type} & \textbf{Description}  \\
+\hline
+\endhead
+  Age & years & Continuous & The number of full years the patient has lived \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Temperature & ℃ & Continuous & The closest temperature recording before admission into the \gls{icu}\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Platelets & \gls{ku/l}  & Continuous  & Cell fragments that allow the blood to clot and injuries to heal\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Chloride & \gls{meq/l} & Continuous & An essential electrolyte that works in a capacity to maintain pH balance, help digestion and cell function among other uses\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Sodium & \gls{meq/l} & Continuous & Sodium works together with chloride in many bodily functions. It is also a major nutirent involved in water retention and blood pressure regulation \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Potassium & \gls{meq/l} & Continuous & Electrolyte that is useful to lower blood pressure by removing excess sodium. It also promotes bone density and healthy muscle function\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Glucose & \gls{mg/dl} & Continuous & Responsible for energy production and brain function\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Haemoglobin & \gls{g/dl} & Continuous & Important for the transferral of oxygen from the lungs to the rest of the body and takes carbon dioxide from cells to the lungs for it to be exhaled \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ \gls{ptt} & seconds & Continuous & The time taken for blood to clot\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Troponin & \gls{ng/l} & Continuous & Troponin helps the heart muscle contract and relax \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Calcium Gluconate and Ondansetron & no unit & Binary & Calcium Gluconate and Ondansetron are both medication. Ondansetron aims to prevent nausea and vomiting caused by cancer treatments or surgery and Calcium Gluconate is used in cases where calcium is too low, potassium is too high and/or magnesium is too high\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+ Ethnicity & no unit & Categorical & Categories of universally recognised ethnic groups: White, Black, Asian, Hispanic/Latino, Other.\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Sex & no unit & Binary & Two binary categories, male and female, as recognised in \gls{mimic}-IV  \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Admission Type & no unit & Categorical & Categories that represent the type of admission for the patient: Urgent, Observation, Emergency, Elective.\\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+  Health Insurance & no unit & Categorical & The type of health insurance the patient has: Medicare, Medicaid, Private, Other. \\ 
+    \hline
+\caption[Covariates]{Variables that have been extracted from \gls{mimic}-IV that will be considered as predictors in the prediction models for this project}\label{tab:my_label}\
+\end{longtable}
+\end{center}}}
+\normalsize
+
+An essential data pre-processing step to ensure valid interpretations is to scale continuous data so that for each variable the mean is 0 and the standard deviation is 1. Doing so places each variable on the same scale where the coefficients correspond to the effect of a 1 standard deviation change\cite{Gelman2008}. Dummy coded categorical variables cannot be placed on this scale, however. Their coefficients represent the effect of being in the category as opposed to being in the reference category.
+
+When multiple measurements were recorded for a continuous covariate prior to a patient’s first \gls{icu} admission, the value closest to the time of admission was selected.
+
+\subsection{Data Cleaning}
+\gls{sql} and R programming were used to handle data cleaning.
+
+Some patients had more than one \gls{icu} admission in their hospital stay, i.e. they were discharged and readmitted. The subsequent \gls{icu} stays cannot be included within the data as this would violate the assumption of independence\cite{Pfeifer2010} which contributes to bias in the prediction models. Including them would also cause some data leakage across the randomly split cross validation folds.
+
+Some of the categorical variables, extracted from \gls{mimic}-IV, contained many categories with some representing only a small number of individuals. For example the ethnicity variable contained several variables that contained a few individuals. To remedy this, each category was incorporated into one of 5 broad ethnic groups, White, Black, Asian, Hispanic/Latino or Other, ensuring each group contained a sufficient amount of data. The data identified as missing were labeled in the same way that missing values in the continuous variables were.
+
+\subsection{Missing Values}
+Missing values in the data act as a roadblock to meaningful analysis. Many machine learning models require the input data to be complete for them to work, and their performance is greatly improved when the missingness is remedied so that the resulting study population matches the true population distribution as closely as possible\cite{Hasan2021}.
+
+\subsubsection{Missing Data Types}
+There are three distinct types of missing data, \gls{mar}, \gls{mnar} and; \gls{mcar}. Data is considered \gls{mcar} when the missingness of the data is random\cite{Mack2018}. This differs from \gls{mnar} which describes missing data that depends on the context behind the missing value. For example people are less likely to disclose their substance use due to societal judgement and/or its legality. And finally \gls{mar} data is dependent on data from other variables\cite{Yan2025}. The importance of these distinctions lie in the determination of the choice of imputation or deletion method of dealing with this missingness.
+
+Dealing with missing data can involve the complete case analysis, omission of all missing data\cite{Ross2020}, or imputation. Although complete case analysis is the simpler method, it may introduce bias into the resulting model if the missing mechanism of the missing data is not \gls{mcar}\cite{Kang2013}. Therefore, omission of these data could potentially lead to a sample that is misrepresentative of the population which in turn leads to the aforementioned bias in the prediction models\cite{Peng2023}.
+
+Imputation can provide a more appropriate approach for reducing potential bias introduced by omitting missing data. Imputation is, in simplistic terms, the replacement of missing data with estimated values to provide a full dataset for analysis. The imputed data values are estimated using the information from the observed data, such as the variables' distributions and relationships with each other\cite{Sterne2009}.
+
+\subsubsection{Imputation Methods}
+
+Single imputation methods were considered inappropriate in the context of this study as they impute the missing values with a single estimate which fails to account for uncertainty in the imputation process\cite{Dettori2018}. Since there is only one imputed value, single imputation can underestimate variance and lead to biased estimates particularly when the proportion of missingness is high\cite{Buuren2019}.
+
+\gls{mice}, however, more appropriately reflects the uncertainty in the imputations and the underlying variability in the data, which allows for it to produce more statistically robust estimates. This method acheives this by using data from the other variables to iteratively impute, via predictive models, until convergence of the distribution of the imputed variables\cite{White2010}.
+
+Each variable used in training the model will be used in the imputation process\cite{vanBuuren2018}. It is possible to include auxillary variables, but they must meet certain criteria; there will however not be any exploration of this in this study.
+
+Logistic regression models for each incomplete variables were fitted to determine how well the other variables explained the probability of missingness. The models used a binary indicator to represent the status of missingness. If none are found to be significant then data being \gls{mcar} is possible although missingness being \gls{mar} or \gls{mnar} is also plausible, there just may be unobserved variables that suggest this. If some of the variables in the model are significantly associated with the missingness then the idea that the missing data is \gls{mar} is more plausible, although \gls{mnar} data may still exist.
+
+The \gls{mice} method works most efficiently under the assumption that the reason of missingness is \gls{mar}. There is no test that can prove whether the missing data in this study is \gls{mar} or \gls{mnar} as both are plausible within a clinical setting. The study will continue with the assumption that the missing data is \gls{mar} even with the knowledge that \gls{mnar} data may be present. This is listed as a limitation in the discussion section.
+
+\subsection{Prediction Models}
+The primary outcome of interest in this study is the lung cancer patients' \gls{los} in the \gls{icu}. Therefore, the performance of two prediction models, gamma \gls{glm} and random forest, will be evaluated to determine their suitability to predict the \gls{icu} \gls{los}.
+
+\subsubsection{Gamma \gls{glm}}
+Linear regression is, compared to other widely known machine learning prediction methods, somewhat simple and easy to interpret. It is often used as the first step in many attempts to apply machine learning techniques for prediction purposes. Arshad et al show how a simple linear model can be more effective than other more complex models, with the example of a study involving breast cancer diagnosis prediction\cite{Arshad2023}. 
+
+\gls{ols} has assumptions that ensure that the predictions are reliable and valid. Two of these assumptions are that the outcome variable data should be normally distributed and there should be no heteroscedasticity\cite{Assumptions}. A normal distribution is one that is described by a bell curve with its mean median and mode all at the centre. Heteroscedasticity occurs when variance of the residuals either increases or decreases as input values differ\cite{Heteroscedasticity}.
+
+The linear regression equation is expressed below.
+
+\[Y = X\beta + \epsilon\]
+
+Y represents the vector of predictions, X is the matrix of input values, $\beta$ are the coefficients for the model and $\epsilon$ is the error term.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 150mm, scale = 0.75]{los_distribution}
+    \caption[\gls{los} distribution]{Shows the distribution of the los variable. Indicates that a regression model that assumes a normal distribution when used on right skewed data may not perform well. Therefore others such as the gamma glm may be a better fit.}
+    \label{fig:los_distribution}
+\end{figure}
+
+This data's right skewed distribution violates the normality assumption rendering the \gls{ols} model invalid for prediction. A gamma \gls{glm} model is a much better fit as it is explicitly designed for right skewed data and data that is strictly positive\cite{Faddy2009}, which is the case for \gls{los}. Furthermore the gamma \gls{glm} does not assume that the model exhibits zero heteroscedasticity, so there is no need to check for this. 
+
+\[Y \sim (\mu, \phi)\]
+
+The \gls{los} data are modelled by the gamma distribution with mean $\mu$ and dispersion parameter $\phi$. This accomodates an increase of variance as the expected \gls{los} increases.
+
+\[log(\mu) = X\beta\]
+
+This equation shows how the logarithm of the expected \gls{los} $\mu$ is linked as a linear relationship which is useful for \gls{los} data as it ensures that predicted values are positive.
+
+The multiplicative effect\cite{Bastos2023} coefficient for a predictor represents a proportional change in the expected \gls{los}. For example a coefficient of 1.02 would correspond to a 2\% change in expected \gls{los} for an increase of size 1 in the variable. Therefore, the absolute change in \gls{los} is larger for long stays than it is for short stays. 
+
+\subsubsection{Random Forest}
+To explain the random forest method, the concept of a \gls{cart} must be established first\cite{Ibrahim2023}. At the beginning of constructing a decision tree \(100\%\) of the data constitutes what is labelled the root node\cite{SinghKushwah2022}. The root is split into two groups/child nodes, according to an attribute of one independent variable\cite{Ishwaran2015}, so that the overall mean squared value is optimally minimised\cite{Kitchin2020}. The splitting continues until a stopping point is reached. This may be because the \gls{mse} minimisation offers insignificant improvements or when the process has concluded in a predetermined maximum number of splits. As a result the data in the terminal nodes, otherwise known as leaf nodes, are relatively homogeneous with respect to the outcome. 
+
+Each terminal node includes a subset of the overall population wherein the mean for the values of the target variable constitutes their predicted value \cite{SpringerSeries}. Therefore, when evaluating the model, the test data is fed into the tree and their predictions are determined according to which terminal node they fall into. The evaluation metric can then be calculated using these predictions in comparison to the actual values.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 150mm, scale = 0.75]{decisiontreegraph}
+    \caption[Decision tree diagram]{A diagram showing how a decision tree splits the data so that homogeneous groups form at the leaf/terminal nodes. Diagram found in figure 6 of this paper\cite{Sakr2025}}
+    \label{fig:decisiontreegraph}
+\end{figure}
+
+A single decision tree achieves low training error due to its high flexibility, meaning that the model is more likely to fit to noise in the data. Thereby the model is prone to overfitting. The lack of generalisability on unseen data, especially when making predictions on the test set, is a major drawback for using a single decision tree as a prediction model. To mitigate overfitting and reduce variance, multiple decision trees can be aggregated within an ensemble framework. 
+
+One such popular ensemble method is the random forest algorithm\cite{Biau2015}. The final predictions that are obtained from a random forest model are averages from the predictions made by multiple independent, parallel decision trees\cite{Breiman2001}. The data used in each decision tree is sampled with replacement, a method known as bagging (bootstrap aggregation), to produce sets of training data each different from one another. Since each tree sees different data, their individual predictions are less correlated. Averaging the predictions across the trees reduces the variation in the model and therefore makes it less sensitive to random variation in the training data. Another feature of the algorithm is random variable selection. At each split only a subset of variables are considered. This promotes diversity among the trees by reducing the correlation between trees\cite{Chen2012}, contributing to a more robust model.
+
+\subsection{Evaluation of Prediction Models}
+It is important to consider the validity of prediction models. There are several methods that are designed to check the generalisability of how well models fit to new data which can be assessed using internal and/or external validation methods\cite{Jiang2017}. A prediction model requires appropriate validation so that it can be assessed for suitability in practical use. Validation also allows the predictive performance of different models to be compared. 
+ 
+\subsubsection{Internal Validation}
+A common method of internal validation is k-fold cross-validation\cite{Rodrguez2013}. This involves splitting the dataset into k folds, usually k is set to 5 or 10, one split is used as the test dataset and the others used to train the model. In this way, all data is used both to train and test. The performance metrics in each fold can be evaluated using the predictions and actual values for the test set. 5-fold cross-validation was selected to repeatedly assess the model performance therefore reducing the variability that is associated with a single fold cross-validation\cite{Varma2006}. 
+
+Other validation methods are available to use but they come with significant downsides. For example the jackknife and bootstrap methods are not suitable because they are much less effective for larger datasets due to their high computational complexity and computational cost\cite{Kleiner2014}\cite{Withers2009}. The 5-fold cross-validation's computational intensity is relatively managable and it works well with larger datasets.
+
+The best way to validate a machine learning prediction model is to validate externally. A model validated only on the data included in the original dataset still carries a lot of optimism and may fit poorly. Evaluation on relevant data obtained in new settings gives a better estimate of how generalisable the model is to a diverse range of populations\cite{Bleeker2003}. Due to unavailable external data external validation will not be explored in this study.
+
+\subsubsection{Performance Measures}
+
+The \gls{rmse} is a metric that measures the standard deviation of the residuals in the model. An advantage of using this metric is that it is in the same units as the target variable adding ease to interpretability. In the context of these models the \gls{rmse} represents the typical magnitude of the prediction error in days\cite{Hodson2022}. 
+
+\gls{mae} shows a similar measure as \gls{rmse} in that it measures how much a model's predictions deviate from the actual values. The difference between the two is how this figure is calculated as \gls{mae} is the absolute average error value. 
+
+\gls{rmse} is more sensitve to larger errors because the errors are squared before they are averaged. Thereby the \gls{rmse} metric is more useful when assessing the risk of long \gls{los}, which is important because long stays can be very costly. However the \gls{mae} is more useful for the aim of estimating the average error for the typical patient because long stays will not so heavily affect the prediction error.
+
+The metric R\(^2\) measures the proportion of the variance that can be explained in the outcome variable by the predictor variables which helps determine the model's predictive usefulness alongside the other performance values\cite{Kim2026}.
+
+\subsubsection{Cross Validation to Imputation Pipeline}
+To evaluate the performance of the models it's important to consider the order of pre-processing (imputation) and cross validation. The order is important for reducing data leakage\cite{Dataleakage}, which introduces optimistically biased predictions of the observed data causing the reduction of the suitability for use of the model to make predictions on unseen data.
+
+By imputing first, the data is imputed only once, so any data used in validation affects the way in which the missing data is imputed thereby leading to a significant amount of data leakage. In comparison by using an imputation within each fold, the data leakage is reduced because the data from the test dataset never affects the imputation of the data used to train the model. So in terms of avoiding data leakage the order of imputation within the cross validation is preferable; the evaluation that imputation within cross validation outputs is less optimistically bias and closer to the true evaluation to the model's ability to predict accurately on unseen data. 
+
+So with the decision made that the order of imputation within cross validation as the more suitable choice a visualisation is useful to properly show how this works.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 150mm, scale = 0.75]{imputedcv14}
+    \caption[Imputation within each cross validation fold]{This shows how, within one fold of the outer cross validation, the dataset is imputed producing five independent datasets. By Rubin's rules each dataset is split into a training and test set, the model is trained and evaluated in each imputed variant of the data. The validation performances are then pooled together to output the validation performance for the fold.}
+    \label{fig:imputedcv14}
+\end{figure}
+
+This visualisation shows how to implement the \gls{mice} imputation process within one cross validation fold to produce a value of the validation metric. The cross validation fold with missing data is imputed five separate times. Within each fold, the train set is imputed first, then the corresponding test set is imputed using the imputation model fitted on the training set. Each test-train pairs are then validated as shown in the figure below. Each imputed dataset produces a validation metric, and these metrics are averaged to obtain a single validation value for each fold. The process of creating several different imputed datasets and averaging the performance metrics follows Rubin's rules\cite{Sterne2009} which preserves the uncertainty of missing data imputation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 150mm, scale = 0.75]{cross-v}
+    \caption[Cross validation]{5-fold cross validation where the validation performance value for each fold is calculated using the method in figure 3}
+    \label{fig:cross-v}
+\end{figure}
+
+The incomplete dataset is partitioned into five folds. In each iteration, one fold is held out as the test set, while the remaining four folds are used as the training set. Within each fold, the full modelling pipeline (as described in the previous figure) is carried out, including any preprocessing, imputation, and model fitting procedures. This produces one performance value per fold. The five fold-level validation metrics are then averaged to obtain the final estimate of model performance.
+
+\subsection{Variable Importance}
+
+\subsubsection{Gamma \gls{glm}}
+
+The forest plot will show each variables multiplicative effect on the \gls{los} prediction. Therefore a value of 1 would suggest that a variable's increase or decrease would not affect the value of the prediction. This leads to the fact that a variable would be more impactful/important the further away its multiplicative coefficient is away from 1, either lower or higher. For example, a multiplicative coefficient of 1.2 indicates that, when holding all other predictors constant, an increase of 1 in this variable is associated with a 20\% increase in the expected \gls{los}. Alternatively a multiplicative coefficient of 0.8 is associated with a 20\% decrease.
+ 
+The forest plot is primarily used to interpret individual predictor effects rather than rank variables by predictive performance, although the effect estimates may be compared. With these values the \gls{glm} model provides clear interpretability\cite{Song2013} for each variable's estimated effect on the \gls{los} outcome as there is a distinct figure that shows the magnitude and direction of the association.
+
+\subsubsection{Random Forest}
+
+Within each random forest model bootstrap samples of the inner training fold datasets are used to train each individual tree. The data not included in the bootstrap sample are termed out of the bag observations and these are used to calculate the variable importance. 
+
+To calculate permutation variable performance for the random forest model, the baseline \gls{mse} is first calculated for each tree using its predictions. A variable's importance is assessed by randomly permuting its values so that the relationship between the variable and the \gls{los} outcome is disrupted; the other variable's values are not changed. The \gls{mse} is recalculated so that the difference between this \gls{mse} and the baseline can be obtained. This is repeated across all the trees with the average of the \gls{mse} taken as the measure of variable importance. A larger overall value suggests that the model relied more on this variable for an accurate prediction\cite{Genuer2010}.
+
+\newpage
+
+\section{Results}
+
+\subsection{Dataset Description}
+
+\subsubsection{Data Extraction}
+
+\gls{mimic}-IV provides data on 364,627 unique individuals who in total record 546,028 hospitalisation admissions with 94,458 unique \gls{icu} stays. To identify the lung cancer \gls{icu} stays the data in the \gls{icu} stays table must be sifted through by the lung cancer diagnosis \gls{icd}-9 and \gls{icd}-10 codes. Data is removed if it is outside of the normal range in any of the variables. After doing this the number of \gls{icu} stays for patients with lung cancer comes to a value of 2,390, sourced from 2,115 unique admissions. Only the first \gls{icu} stay is taken so the final dataset consists of 2,115 independent \gls{icu} stays.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 100mm, scale = 0.75]{flowchart2}
+    \caption[Sample size flowchart]{A flowchart showing how the sample size is obtained from the database according to the eligibility criteria}
+    \label{fig:flowchart2}
+\end{figure}
+
+\subsubsection{\gls{icu} Stay Demographics}
+
+Among the 2,115 \gls{icu} stays there is a slight favour of males, \(54\%\), to females, \(46\%\).  The most populous age range is the 61-70  year old group, \(33.4\%\), followed by the 71-80 group, \(29.0\%\). The 18-40 group is markedly small, \(0.6\%\),  given it's wide range. The majority of patients' \gls{icu} stays, included in this dataset, are of white ethnicity, \(72.6\%\), and the majority of patients are in hospital with medicare insurance , \(61.6\%\). Over half of the stays, \(55.5\%\) were from the result of emergency admissions. More detailed statistics are given in table 4.
+
+{\seriffont
+{\small
+\renewcommand{\arraystretch}{1}
+%\centering
+\begin{center}
+
+\setlength{\arrayrulewidth}{0.7mm}
+\begin{longtable}{ |L{7.5cm} | L{6cm} |} 
+    \hline
+    \textbf{Characteristic} & \textbf{N = 2115}\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+    \hline
+    \endfirsthead
+
+    \hline 
+    \textbf{Characteristic} & \textbf{N = 2115}\\
+    \hline
+    \endhead
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Age (years)}} \\
+    \hline
+       18-40   & 13 (0.6\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       41-50   & 83 (3.9\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       51-60   & 346 (16.4\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       61-70   & 703 (33.2\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       71-80   & 624 (29.5\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       81-90   & 293 (13.9\%)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       91+     & 53 (2.5\%)\\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Sex}} \\
+    \hline
+       Male  & 1,125 (53.2\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Female  & 990 (46.8\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Ethnicity}} \\
+    \hline
+       White  & 1,538 (72.7\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Black  & 207 (9.8\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Asian  & 113 (5.4\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Hispanic/Latino  & 47 (2.2\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Other & 60 (2.8\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Missing & 150 (7.1\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Insurance}} \\
+    \hline
+       Medicare  & 1,305 (61.7\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Private   & 492 (23.3\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Medicaid  & 262 (12.4\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Other  & 40 (1.9\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Missing  & 16 (0.7\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Admission Type}} \\
+    \hline
+       Emergency & 1,186 (56.1\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Observation & 330 (15.6\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Urgent & 297 (14.0\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Elective & 302 (14.3\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Platelets (\gls{ku/l})}} \\
+    \hline
+       Mean (\gls{sd}) & 262.9 (134.1) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,325 (62.6) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Glucose (\gls{mg/dl})}} \\
+    \hline
+       Mean (\gls{sd}) & 137.5 (78.1) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,235 (58.4) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Chloride (\gls{meq/l})}} \\
+    \hline
+       Mean (\gls{sd}) & 100.5 (8.4) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,241 (58.7) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Potassium (\gls{meq/l})}} \\
+    \hline
+       Mean (\gls{sd}) & 4.8 (5.3)\\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing & 1,227 (58.0)\\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Haemoglobin (\gls{g/dl})}} \\
+    \hline
+       Mean (\gls{sd}) & 10.7 (2.2) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,239 (58.6) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Sodium (\gls{meq/l})}} \\
+    \hline
+       Mean (\gls{sd}) & 135.2 (13.0) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       N missing (\%) & 1,233 (58.3) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{Drugs taken}} \\
+    \hline
+       Ondansetron & 345 (16.3\%) \\
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+       Calcium Gluconate & 841 (40.0\%) \\
+    \hline
+    \multicolumn{2}{|p{13.5cm}|}{\textbf{\gls{los} (days)}} \\
+    \hline
+       Mean (\gls{sd}) & 3.8 (5.2) \\
+    \hline
+    \caption[Dataset description]{Details for each variable in the dataset}
+    \label{tab:my_label}
+\end{longtable}
+\end{center}}}
+\normalsize
+
+\subsection{Missing Data}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = 150mm, scale = 0.75]{missing_data}
+    \caption[Missing data]{A bar chart showing the percentages of missing data for the numerical variables in the dataset. The variables in green will be considered as predictors in the prediction models whereas the variables in red are dissmissed with INR as \gls{inr} and PTT as \gls{ptt}}
+    \label{fig:missing_data}
+\end{figure}
+
+All of the data variables shown in this graph have highly significant amounts of missing data with not one variable showing a percentage of missing data less than 50 \%.  This is not very conducive for the inclusion of these variables in the prediction models since when data is more than 40 \% missing it can be considered as hypothesis generating and therefore will likely not provide accurate predictions\cite{Marino2021}. However, some data must be used so for the purposes of the continuation of the study so the variables in green are kept as predictors in the model.
+
+\subsection{Priori Sample Size}
+
+With the number of candidate predictors outlined above it is now possible to calculate the minimum sample size sufficient for this study with the priori R\(^2\) assumption. 19 candidate predictors were identified by the variable selection process. Inputting the data into the "pmsampsize" R command the resulting minimum sample size is valued at 676. This is lower than the sample size of 2115 thereby suggesting that this sample is sufficient based on the assumptions made.
+
+\subsection{Imputation}
+
+The logistic regression models fitted to assess the mechanism of missingness showed that for each variable its missingness was significantly associated with at least one of the other observed variables. Therefore there is plausibility of \gls{mar} in each observed variable which rules out the possibility of \gls{mcar}. The \gls{mice} imputation proceeds with the assumption of \gls{mar} despite the inability to exclude the plausibility of \gls{mnar}.   
+
+\subsection{Model Performance}
+
+The gamma \gls{glm} model had a narrow predictive advantage according to the \gls{mae} metric with a 0.05 day difference between it's  \gls{mae} of 2.86 to the random forest's 2.91. Similarly for the R\(^2\) values both model's performance varied only slightly where the gamma \gls{glm} model explained 4.0\% of the variation in the \gls{los} variable compared to the random forest's 4.5\%. Again this is true for the \gls{rmse} values, in this case the gamma \gls{glm} regression performed slightly worse with its value of 4.88 compared to the random forest's 4.86. On the whole the discrepancy between the performance values is insignificant therefore neither model appears to have a clear predictive advantage over the other.
+
+{\seriffont
+{\small
+\renewcommand{\arraystretch}{1}
+\centering
+\begin{center}
+\setlength{\arrayrulewidth}{0.7mm}
+\begin{longtable}{ | L{4cm} | L{3cm} | L{3cm} | L{3cm} | } 
+    \hline
+    \textbf{Model} & \textbf{\gls{rmse}} & \textbf{\gls{mae}} & \textbf{R\(^2\)}  \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+    \hline
+    \endfirsthead
+
+\hline
+\textbf{Model} & \textbf{\gls{rmse}} & \textbf{\gls{mae}} & \textbf{R\(^2\)} \\
+\hline
+\endhead
+\textbf{Gamma \gls{glm}} & 4.88 & 2.86 & 0.040  \\ 
+    \noalign{\global\setlength{\arrayrulewidth}{0.05mm}}
+    \hline
+    \noalign{\global\setlength{\arrayrulewidth}{0.7mm}}
+\textbf{Random Forest} & 4.86 & 2.91 & 0.045 \\ 
+     \hline
+\caption[Model performance]{The model performance in terms of \gls{rmse}, \gls{mae} and R\(^2\)}\label{tab:my_label}\\
+\end{longtable}
+\end{center}}}
+\normalsize
+
+\subsection{Sample Size Sensitivity Analysis}
+
+Now that the actual R\(^2\) performance value has been found for the two models the minimum sufficient sample size can be recalculated to assess whether the sample size was adequate for the observed model performance. The models' actual R\(^2\) are lower than the priori R\(^2\) value thereby doubt is raised over the sufficiency of the sample size. 0.04 was the lowest observed R\(^2\) value so this will be used as input in the sample size calculation. The output of the "pmsampsize" calculation is valued at 3698. This minimum exceeds the sample size used in the prediction model suggesting insufficiency.
+
+\subsection{Variable Importance}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 150mm, scale = 0.75]{forest_plot}
+    \caption[\gls{glm} variable importance]{A forest plot showing the variable importance within the \gls{glm} model as multiplicative effect coefficients}
+    \label{fig:var_import}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 150mm, scale = 0.75]{var_import}
+    \caption[Random forest variable importance]{A chart showing the variable importance within the random forest model}
+    \label{fig:var_import}
+\end{figure}
+
+Both random forest and \gls{glm} suggest that calcium gluconate as the most important variable. This suggests this variable may both have a strong association with expected \gls{los} and a substantial contribution to predictive performance. The same comparitive agreement is not preserved for the next couple of variables, however. The two variables that random forest finds to have the most predictive influence sodium and haemoglobin, which both have a relatively weaker association with expected \gls{los} according to the \gls{glm} model. Conversely, several variables with strong \gls{los} association in the \gls{glm} model, including the categorical variables ethnicity, admission type and insurance, demonstrated varying degrees of predictive influence in the random forest but were not among most influential predictors. These differences highlight the different ways in which the \gls{glm} and random forest evaluate variable importance, with the \gls{glm} focusing on the estimated relationships with \gls{los} and random forest with predictive accuracy.
+
+\newpage
+
+\section{Discussion}
+
+\subsection{Findings}
+
+The values from the performance metrics suggest that neither models produce robust and reliable predictions of \gls{los} and neither model has greater predictive advantage over the other. Since the random forest model is the less interpretable\cite{Song2013} as there is no output equation that details the absolute effect size for each variable. Random forest can capture complex non-linear relationships and higher order interactions without needing specification beforehand,\cite{Simon2023} but in this case that has not shown to give a distinct advantage. 
+
+The \gls{rmse} and \gls{mae} values indicated that the predicted values differed from the actual values by around 3 days on average, with larger errors contributing to an overall error of 5 days on average. The average \gls{los} in the data is approximately 3.8 days. Given the \gls{rmse} and \gls{mae} values, the model's ability to accurately predict the \gls{los} for short-term patients, who constitute the majority in the dataset, is limited. Therefore these models would not be suitable for supporting bed management in the \gls{icu}.
+
+The R\(^2\) squared values for the \gls{glm} and random forest were 0.04 indicating that the models explained 4\% of the variability in the \gls{icu} \gls{los}. This suggests that the variables included in the models provided limited explatory power for \gls{los} which meant that a significant amount variance remained unexplained. When considered alongside the \gls{rmse} and \gls{mae} values these findings imply that the models display a limited predictive ability for estimating lung cancer \gls{icu} \gls{los} and so are unlikely to provide reliable predictive information that would helpfully aide clinician or bed management decisions.
+
+The observed R\(^2\) value being lower than the priori R\(^2\) assumption used to calculate minimum sample size suggested that this initial calculation may have been optimistic. The sensitivity analysis found that the sample size of 2115 used in developing the prediction models was inadequate to meet the expectations of the priori R\(^2\) performance, thereby suggesting that a larger sample size was required. Therefore it must be stated that due to this result the generalisability and reliability of the model estimates was reduced.
+
+The calcium gluconate variable was shown in both models to be significantly important. This finding, however, is severly limited by the R\(^2\) value of 0.04 which implied the included variables only explained 4\% of variability in \gls{los}. Therefore the definitive finding of calcium gluconate as a significant predictor of lung cancer \gls{icu} \gls{los} is unfounded. 
+
+The substantial right skew in the \gls{los} data poses a challenge for modelling and interpreting predictive performance. For \gls{ols} the existence of skew is often associated with a violation of the normality and heteroscedacicity assumptions.\cite{Osborne2002} The right skewed distribution of \gls{los} is relevant to the interpretation of  \gls{rmse} as it has a higher sensitivity to large prediction errors and extreme values. The decision to use gamma \gls{glm} regression to account for the skew was justified although the relatively large \gls{rmse} result suggests that this decision alone was not sufficient enough to provide accurate predictions.
+
+\subsection{Comparison to the Literature}
+
+The predictive performance for the models in this study was lower than some of the reported findings from the studies found in the literature review. However, there are many factors that could explain this difference. Firstly, there is a higher likelihood published studies to report stronger or more significant results which introduces a publication bias.\cite{Dwan2008} Many of the models in these previous studies utilised data with a lower proportion of missing data and many included a greater number of variables which may have enhanced their performance and explained a higher proportion of variance in the outcome. 
+
+The scarcity of studies using \gls{mimic}-IV or examining patient's lung cancer \gls{icu} \gls{los} limited the ability to draw direct comparisons with previous research. There were, however, studies using data from other databases focusing more on cancer more broadly that the findings from this study can be compared to, although the difference in the data source limits the validity of the comparisons. Many of these studies followed a classification prediction approach rather than regression used in this study. The difference in the type of performance metrics make direct comparisons of predictive performance difficult, but it does show that alternative approaches may provide more appropriate insights in regards to \gls{icu} \gls{los} prediction.
+
+Another takeaway from the literature is the tendency for the random forest model to display stronger and more reliable predictive performance compared to alternative machine learning methods. The trend was not shown in this study as neither the \gls{glm} model or the random forest performed better than each other. 
+
+The study that focused on lung cancer \gls{los} prediction using the \gls{mimic}-III using similar key predictors\cite{Alsinglawi123} found that the random forest model gave the most accurate predictive results. This study however focused on classification prediction and also incorporated advanced techniques such as \gls{smote}\cite{Chawla2002} and \gls{adasyn}\cite{Susan2020} to address the class imbalance in the data allowing the model to make robust predictions in extreme cases. The variable importance graph also showed significantly differing results, although the method used to calculate importance was not the same as the one used in this study.
+
+\subsection{Limitations}
+
+There was a substantial proportion of missing data in the dataset which can introduce several limitations including an increased risk of bias, reduced statistical power and a reduced reliability of imputation methods. As a consequence this may cause less robust and generalisable prediction models.
+
+With clinical data there is a significant chance that the data would be \gls{mnar}. This is a significant limitation as the \gls{mice} imputation method is applicable when there is significant evidence to suggest that the data is \gls{mar}. With \gls{mnar} data \gls{mice} may introduce bias within the imputed data thereby rendering a potentially misleading model performance and variable importance.
+
+The models do not account for death in the \gls{icu}. This confuses the model as it would treat, for example, a rapid recovery and a death in the \gls{icu} both with short stays as equivalent when in fact they represent two fundamentally different outcomes. A rapid recovery may suggest that the patient had a case of low severity whereas a death in the ICU may suggest the opposite. This leads to a reduced predictive accuracy and less reliable variable importance.
+
+The models predict with a small amount of variables. This may mean that the model is too simplistic and lacking meaningful information from key indicators. Consequently the model's predictive performance would be weakened.
+
+Although general \gls{icu} \gls{los} with machine learning models is well studied, specific disease models, such as those for lung cancer, are relatively unexplored. This presents a limitation and a difficulty as a lack of prior study provides a scarcity of models to compare predictive performance and guide methodology.
+
+\gls{mimic}-IV is used as the sole source of data, limiting the opportunity to validate on external data in order to assess the models' generalisability across varying populations.
+
+The sample size was shown to be insufficient for the observed model performance.
+
+\subsection{Future Recommendations}
+
+Model testing on data from new areas and alternative demographics. A model tested on one set of data from a single hospital may not generalise well to other healthcare settings where aspects such as patient demographics or medical practice may differ. External validation among various populations is necessary when assessing the robustness of the prediction model.  It may be more useful to adapt the model depending on the makeup of the population that it's used on.
+
+Work on improving data completness before model training will allow for more reliable imputation thereby leading to improved performance and model stability. 
+
+To adjust for the event of discharge via death in the \gls{icu} two separate predictions could be made. One for if the patient survives the \gls{icu} admission and one for if they don't. Therefore the equation for \gls{los} could be: (probability of death in \gls{icu})(\gls{los} given the patient dies during the stay) + (probability of survival in the \gls{icu})(\gls{los} given the patient survives the \gls{icu} admission).
+
+Random forest has shown the more reliable results but further evaluation of additional machine learning algorithms may provide a more robust alternative that gives a greater model performance. Algorithms such as \gls{xgboost} and neural networks could potentially be better alternatives.
+
+As stated previously considering new variables, such as medical complications or comorbidities, may improve model performance.
+
+The sample size was shown to be insufficient so future research should consider sourcing a larger sample of patients. The priori R\(^2\) value used in this study was sourced from one previous study, however, so future research should look towards finding multiple studies to provide a more informed priori R\(^2\) value for use in estimating the minimum sufficient sample size.
+
+\section{Conclusion}
+Since neither model was shown to have discernable advantages in predictive performance the more interpretable model is favoured, which in this case is the \gls{glm} gamma. Findings were not clinincally significant enough for either of these models to be recommended to make accurate predictions on lung cancer patients' \gls{los} in the \gls{icu}, however, but due to the depths of the limitations within the study the possibility for an effective prediction model such as this to be created cannot be ruled out. Further study with reduced impact from its limitations may provide a more reliable prediction model.
+
+
+\newpage
+\clearpage
+\pagenumbering{roman}
+\setcounter{page}{\value{savepage}} 
+\addtocounter{page}{1}
+
+\phantomsection
+\addcontentsline{toc}{section}{\refname}
+
+\printbibliography
+
+\end{document}
+
